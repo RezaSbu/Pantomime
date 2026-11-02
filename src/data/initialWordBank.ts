@@ -7,50 +7,38 @@ import {
 } from '../types/game';
 import { normalizePersianText } from '../utils/format';
 import { GOLDEN_CATEGORY_META, INITIAL_CATEGORIES } from './categories';
-import { CELEBRITY_WORDS } from './words/celebrities';
-import {
-  BOOKS_WORDS,
-  FAMOUS_FIGURES_WORDS,
-  MUSIC_WORDS,
-  SPORTS_WORDS,
-} from './words/culture_people';
-import {
-  ANIMALS_WORDS,
-  FOOD_WORDS,
-  JOBS_WORDS,
-  OBJECTS_WORDS,
-} from './words/everyday_life';
-import { FOOTBALL_WORDS } from './words/football';
-import { GOLDEN_WORDS } from './words/golden';
-import { ABSTRACT_WORDS, PROVERBS_WORDS } from './words/proverbs_abstract';
-import { CARTOONS_WORDS, MOVIES_WORDS, SERIES_WORDS } from './words/screen_media';
-import {
-  CITIES_COUNTRIES_WORDS,
-  PLACES_WORDS,
-  TECH_SCIENCE_WORDS,
-} from './words/world_places';
+import { RegularCategoryId, WORD_DB } from './wordDB';
+import { buildCategoryWords, buildGoldenWords } from './wordFactory';
 
 export const INITIAL_WORDS: WordItem[] = [
-  ...FOOTBALL_WORDS,
-  ...SPORTS_WORDS,
-  ...MOVIES_WORDS,
-  ...SERIES_WORDS,
-  ...CARTOONS_WORDS,
-  ...CELEBRITY_WORDS,
-  ...FAMOUS_FIGURES_WORDS,
-  ...BOOKS_WORDS,
-  ...MUSIC_WORDS,
-  ...PLACES_WORDS,
-  ...CITIES_COUNTRIES_WORDS,
-  ...PROVERBS_WORDS,
-  ...ABSTRACT_WORDS,
-  ...ANIMALS_WORDS,
-  ...FOOD_WORDS,
-  ...JOBS_WORDS,
-  ...OBJECTS_WORDS,
-  ...TECH_SCIENCE_WORDS,
-  ...GOLDEN_WORDS,
+  ...INITIAL_CATEGORIES.flatMap((cat) =>
+    buildCategoryWords(
+      cat.id,
+      cat.isProverb ? 'proverb' : 'regular',
+      WORD_DB[cat.id as RegularCategoryId]
+    )
+  ),
+  ...buildGoldenWords(WORD_DB.golden),
 ];
+
+/**
+ * Automatic deterministic fingerprint of INITIAL_WORDS.
+ * Whenever any word is added, edited, or removed in `wordDB.ts`, this signature
+ * updates automatically so IndexedDB syncs on reload without touching any other file.
+ */
+function computeWordBankSignature(words: WordItem[]): string {
+  let hash = 2166136261;
+  for (const w of words) {
+    const str = `${w.id}|${w.text}|${w.basePoints}`;
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+  }
+  return `v2_${words.length}_${(hash >>> 0).toString(16)}`;
+}
+
+export const WORD_BANK_SIGNATURE = computeWordBankSignature(INITIAL_WORDS);
 
 const VALID_DIFFICULTIES = new Set<Difficulty>(['easy', 'medium', 'hard']);
 

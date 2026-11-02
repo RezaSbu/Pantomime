@@ -1,6 +1,6 @@
 import { DBSchema, IDBPDatabase, openDB } from 'idb';
 import { INITIAL_CATEGORIES } from '../data/categories';
-import { INITIAL_WORDS } from '../data/initialWordBank';
+import { INITIAL_WORDS, WORD_BANK_SIGNATURE } from '../data/initialWordBank';
 import {
   ActiveMatchState,
   CategoryItem,
@@ -30,7 +30,7 @@ interface AdabaziDB extends DBSchema {
 
 const DB_NAME = 'adabazi_offline_db';
 const DB_VERSION = 1;
-const SEED_VERSION = '2026.11.1';
+const SEED_VERSION = WORD_BANK_SIGNATURE;
 
 let dbPromise: Promise<IDBPDatabase<AdabaziDB>> | null = null;
 
