@@ -1,0 +1,6 @@
+{
+  "name": "ادابازی",
+  "description": "اپلیکیشن حرفه‌ای بازی گروهی ادابازی و پانتومیم فارسی با بانک جامع کلمات، امتیازدهی هوشمند، پاداش سرعت، موضوع طلایی و اجرای آفلاین.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
