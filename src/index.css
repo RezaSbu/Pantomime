@@ -47,8 +47,37 @@
   animation: gentle-pop 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-logo-float {
+  animation: logo-float 2.8s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(210%);
+  }
+}
+
+.animate-loading-slide {
+  animation: loading-slide 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-gentle-pop {
+  .animate-gentle-pop,
+  .animate-logo-float,
+  .animate-loading-slide {
     animation: none;
   }
 }

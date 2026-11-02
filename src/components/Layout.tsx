@@ -55,15 +55,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="min-h-[100dvh] bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
         <main className="flex-1 flex flex-col">{children}</main>
         <footer className="py-3 px-4 text-center border-t border-slate-200/70 dark:border-slate-800/70">
-          <p
+          <a
+            href="https://github.com/RezaSbu"
+            target="_blank"
+            rel="noopener noreferrer"
             dir="ltr"
-            className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400"
+            className="inline-flex items-center justify-center gap-1.5 py-1 text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
           >
             <span>Created By Reza , Ariana</span>
             <span role="img" aria-label="heart" className="text-sm leading-none">
               {'\u2764\uFE0F'}
             </span>
-          </p>
+          </a>
         </footer>
         <RulesSheet />
         <OfflineToastIndicator />
@@ -167,15 +170,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
 
       <footer className="py-4 px-4 text-center border-t border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60">
-        <p
+        <a
+          href="https://github.com/RezaSbu"
+          target="_blank"
+          rel="noopener noreferrer"
           dir="ltr"
-          className="inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold tracking-wide text-slate-600 dark:text-slate-400"
+          className="inline-flex items-center justify-center gap-1.5 py-1 text-xs sm:text-sm font-semibold tracking-wide text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
         >
           <span>Created By Reza , Ariana</span>
           <span role="img" aria-label="heart" className="text-sm sm:text-base leading-none">
             {'\u2764\uFE0F'}
           </span>
-        </p>
+        </a>
       </footer>
 
       <RulesSheet />

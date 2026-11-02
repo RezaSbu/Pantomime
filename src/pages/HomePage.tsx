@@ -10,6 +10,7 @@ import {
   Users,
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { AdabaziLogo } from '../components/AdabaziLogo';
 import { DynamicIcon } from '../components/DynamicIcon';
 import { PWAInstallControl } from '../components/PWAInstallControl';
 import { getActiveTeam } from '../engine/gameEngine';
@@ -178,17 +179,20 @@ export const HomePage: React.FC = () => {
       )}
 
       {/* Clean Mobile-First Game Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1
-            className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white"
-            style={{ textWrap: 'balance' }}
-          >
-            شروع مسابقه جدید ادابازی
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            تیم‌ها و تعداد دور را مشخص کنید؛ در طول بازی هر تیم موضوع و سطح دشواری خودش را انتخاب می‌کند.
-          </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <AdabaziLogo className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 drop-shadow-sm" />
+          <div className="space-y-1 min-w-0">
+            <h1
+              className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white"
+              style={{ textWrap: 'balance' }}
+            >
+              شروع مسابقه جدید ادابازی
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+              تیم‌ها و تعداد دور را مشخص کنید؛ در طول بازی هر تیم موضوع و سطح دشواری خودش را انتخاب می‌کند.
+            </p>
+          </div>
         </div>
 
         <button
