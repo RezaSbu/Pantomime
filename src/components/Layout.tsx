@@ -52,15 +52,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   if (route === 'game') {
     return (
-      <div className="min-h-[100dvh] bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-        <main className="flex-1 flex flex-col">{children}</main>
-        <footer className="py-3 px-4 text-center border-t border-slate-200/70 dark:border-slate-800/70">
+      <div className="h-[100dvh] max-h-[100dvh] overflow-hidden bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
+        <main className="flex-1 min-h-0 flex flex-col overflow-hidden">{children}</main>
+        <footer className="shrink-0 py-1.5 sm:py-2 px-4 text-center border-t border-slate-200/70 dark:border-slate-800/70 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pb-safe">
           <a
             href="https://github.com/RezaSbu"
             target="_blank"
             rel="noopener noreferrer"
             dir="ltr"
-            className="inline-flex items-center justify-center gap-1.5 py-1 text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 py-0.5 text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
           >
             <span>Created By Reza , Ariana</span>
             <span role="img" aria-label="heart" className="text-sm leading-none">
@@ -71,7 +71,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <RulesSheet />
         <OfflineToastIndicator />
         {toastMessage && (
-          <div className="fixed top-16 inset-x-4 max-w-md mx-auto z-50 rounded-2xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-3 text-xs sm:text-sm font-bold shadow-lg text-center animate-gentle-pop">
+          <div className="fixed top-14 inset-x-4 max-w-md mx-auto z-50 rounded-2xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 text-xs sm:text-sm font-bold shadow-lg text-center animate-gentle-pop">
             {toastMessage}
           </div>
         )}
@@ -80,9 +80,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
+    <div className="h-[100dvh] max-h-[100dvh] overflow-hidden bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
       {/* Compact 3-Zone Mobile-First App Header */}
-      <header className="sticky top-0 z-30 h-14 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <header className="shrink-0 z-30 h-14 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-5xl mx-auto h-full px-4 flex items-center justify-between gap-4 sm:gap-8">
           {/* Zone 1: Brand Wordmark */}
           <button
@@ -165,17 +165,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-5 sm:py-8">
-        {children}
+      <main className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain">
+        <div className="max-w-5xl mx-auto px-4 py-5 sm:py-8">
+          {children}
+        </div>
       </main>
 
-      <footer className="py-4 px-4 text-center border-t border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60">
+      <footer className="shrink-0 z-30 py-2.5 px-4 text-center border-t border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pb-safe">
         <a
           href="https://github.com/RezaSbu"
           target="_blank"
           rel="noopener noreferrer"
           dir="ltr"
-          className="inline-flex items-center justify-center gap-1.5 py-1 text-xs sm:text-sm font-semibold tracking-wide text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 py-0.5 text-xs sm:text-sm font-semibold tracking-wide text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
         >
           <span>Created By Reza , Ariana</span>
           <span role="img" aria-label="heart" className="text-sm sm:text-base leading-none">

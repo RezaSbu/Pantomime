@@ -7,7 +7,7 @@ console.log('====================================================');
 console.log('گزارش اعتبارسنجی بانک کلمات ادابازی (Word Bank QA)');
 console.log('====================================================');
 console.log(`مجموع کل کلمات و عبارات: ${report.totalWords}`);
-console.log(`کلمات ۱۸ دسته اصلی: ${report.regularWordsCount}`);
+console.log(`کلمات ۱۹ دسته اصلی: ${report.regularWordsCount}`);
 console.log(`عبارات موضوع طلایی (۳۰ امتیازی): ${report.goldenWordsCount}`);
 console.log('----------------------------------------------------');
 

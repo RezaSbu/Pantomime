@@ -1,5 +1,6 @@
 import {
   Award,
+  Baby,
   BookOpen,
   Briefcase,
   Compass,
@@ -10,6 +11,7 @@ import {
   Globe,
   GraduationCap,
   Landmark,
+  LayoutGrid,
   Lightbulb,
   Medal,
   Music,
@@ -17,6 +19,7 @@ import {
   PawPrint,
   Quote,
   Rocket,
+  Shapes,
   Shield,
   Smile,
   Sparkles,
@@ -55,6 +58,9 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Compass,
   Award,
   Sparkles,
+  Baby,
+  LayoutGrid,
+  Shapes,
 };
 
 interface DynamicIconProps {

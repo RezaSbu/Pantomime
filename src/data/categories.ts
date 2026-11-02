@@ -1,11 +1,25 @@
 import { CategoryItem } from '../types/game';
 
 /**
- * The exact 18 initial categories specified in Section 6 of the product specification.
+ * The 19 regular categories (including General, Kids, and unified Movies & Series).
  * Note: Golden Challenge ('golden') is handled as an independent special challenge pool,
  * never mixed into regular category random selection.
  */
 export const INITIAL_CATEGORIES: CategoryItem[] = [
+  {
+    id: 'general',
+    name: 'عمومی',
+    description: 'موضوعات آزاد، واژه‌های روزمره و ترکیبات متنوع برای همه سلیقه‌ها',
+    icon: 'LayoutGrid',
+    enabledByDefault: true,
+  },
+  {
+    id: 'kids',
+    name: 'کودکان',
+    description: 'واژه‌های بسیار ساده، کوتاه و آشنا برای اجرا و حدس زدن بچه‌ها',
+    icon: 'Baby',
+    enabledByDefault: true,
+  },
   {
     id: 'football',
     name: 'فوتبال',
@@ -21,17 +35,10 @@ export const INITIAL_CATEGORIES: CategoryItem[] = [
     enabledByDefault: true,
   },
   {
-    id: 'movies',
-    name: 'فیلم',
-    description: 'آثار ماندگار و شناخته‌شده سینمای ایران و جهان',
+    id: 'movies_series',
+    name: 'فیلم و سریال',
+    description: 'فیلم‌های سینمایی و سریال‌های محبوب تلویزیونی و نمایش خانگی ایرانی و جهانی',
     icon: 'Film',
-    enabledByDefault: true,
-  },
-  {
-    id: 'series',
-    name: 'سریال',
-    description: 'سریال‌های محبوب تلویزیونی و نمایش خانگی ایرانی و خارجی',
-    icon: 'Tv',
     enabledByDefault: true,
   },
   {

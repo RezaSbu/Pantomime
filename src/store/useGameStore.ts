@@ -147,6 +147,21 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   hydrate: async () => {
     try {
       const data = await initializeStorage();
+      // Normalize legacy movies/series combo keys if resuming an older saved match
+      const rawCombos = data.activeMatch?.usedCombosByTeam ?? {};
+      const migratedCombos: Record<string, string[]> = {};
+      for (const [teamId, combos] of Object.entries(rawCombos)) {
+        migratedCombos[teamId] = Array.from(
+          new Set(
+            combos.map((c) =>
+              c.startsWith('movies:') || c.startsWith('series:')
+                ? `movies_series:${c.split(':')[1]}`
+                : c
+            )
+          )
+        );
+      }
+
       // Ensure backwards compatibility and enforce Team 1 -> Team 2 -> ... cyclic order on saved matches
       const normalizedMatch = data.activeMatch
         ? {
@@ -158,7 +173,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
               data.activeMatch.phase === 'PRE_TURN'
                 ? data.activeMatch.teams.map((t) => t.id)
                 : data.activeMatch.roundTeamOrder,
-            usedCombosByTeam: data.activeMatch.usedCombosByTeam ?? {},
+            usedCombosByTeam: migratedCombos,
             selectedCategoryIds: INITIAL_CATEGORIES.map((c) => c.id),
             enabledDifficulties: ['easy', 'medium', 'hard'] as Difficulty[],
           }

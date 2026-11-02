@@ -29,7 +29,11 @@ export const HistoryPage: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(history[0]?.id ?? null);
   const [confirmClearAll, setConfirmClearAll] = useState(false);
 
-  const catMap: Record<string, string> = { golden: 'موضوع طلایی' };
+  const catMap: Record<string, string> = {
+    golden: 'موضوع طلایی',
+    movies: 'فیلم و سریال',
+    series: 'فیلم و سریال',
+  };
   for (const c of categories) {
     catMap[c.id] = c.name;
   }

@@ -43,7 +43,7 @@ import {
 const makeWord = (overrides: Partial<WordItem>): WordItem => ({
   id: 'test_word_1',
   text: 'کلمه آزمایشی',
-  categoryId: 'movies',
+  categoryId: 'movies_series',
   difficulty: 'medium',
   kind: 'regular',
   basePoints: 4,
@@ -350,7 +350,7 @@ describe('Word Selector — 60/30/10 Distribution, Category Filter & No Repeats'
   it('never selects unselected categories or repeats words in a match', () => {
     const usedIds = new Set<string>();
     const usageCount: Record<string, number> = {};
-    const selectedCats = ['football', 'movies'];
+    const selectedCats = ['football', 'movies_series'];
 
     for (let i = 0; i < 80; i++) {
       const res = selectNextRegularWord({
@@ -447,7 +447,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     );
 
     match = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-      forcedCategoryId: 'movies',
+      forcedCategoryId: 'movies_series',
       forcedDifficulty: 'hard',
       now: 1000,
     }).state;
@@ -456,12 +456,12 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
 
     const firstWordId = match.currentSlot!.word.id;
 
-    // First swap succeeds and deducts 1 point while keeping 'movies' + 'hard'
+    // First swap succeeds and deducts 1 point while keeping 'movies_series' + 'hard'
     const swap1 = swapWordInTurn(match, INITIAL_WORDS, DEFAULT_SETTINGS, 10_000);
     expect(swap1.swapped).toBe(true);
     match = swap1.state;
     expect(match.currentSlot!.word.id).not.toBe(firstWordId);
-    expect(match.currentSlot!.word.categoryId).toBe('movies');
+    expect(match.currentSlot!.word.categoryId).toBe('movies_series');
     expect(match.currentSlot!.word.difficulty).toBe('hard');
     expect(match.currentSlot!.swapsUsedInSlot).toBe(1);
 
@@ -642,7 +642,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
 
     // Team 2 solves hard word in 30s (0 fouls) -> 6 + 3 = 9 pts (TIE at 9!)
     match = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-      forcedCategoryId: 'movies',
+      forcedCategoryId: 'movies_series',
       forcedDifficulty: 'hard',
       now: 30_000,
     }).state;
@@ -692,7 +692,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(parsed[0].difficulty).toBe(sample[0].difficulty);
   });
 
-  it('validates the entire 5,160-word Persian Word Bank (including Pardis Ahmadieh in celebrities.hard and 300 Golden phrases) with zero duplicates', () => {
+  it('validates the entire 5,700-word Persian Word Bank (19 regular categories + 300 Golden phrases) with zero duplicates', () => {
     const pardis = INITIAL_WORDS.find((w) => w.text === 'پردیس احمدیه');
     expect(pardis).toBeDefined();
     expect(pardis?.categoryId).toBe('celebrities');
@@ -700,8 +700,8 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(pardis?.basePoints).toBe(6);
 
     const report = validateWordBank(INITIAL_WORDS, INITIAL_CATEGORIES);
-    expect(report.totalWords).toBe(5160);
-    expect(report.regularWordsCount).toBe(4860);
+    expect(report.totalWords).toBe(5700);
+    expect(report.regularWordsCount).toBe(5400);
     expect(report.goldenWordsCount).toBe(300);
     expect(report.duplicateIds.length).toBe(0);
     expect(report.duplicateTexts.length).toBe(0);
@@ -711,6 +711,11 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     for (const stat of report.categoryStats) {
       if (stat.categoryId === 'golden') {
         expect(stat.total).toBe(300);
+      } else if (stat.categoryId === 'movies_series') {
+        expect(stat.easy).toBe(54);
+        expect(stat.medium).toBe(162);
+        expect(stat.hard).toBe(324);
+        expect(stat.total).toBe(540);
       } else {
         expect(stat.easy).toBe(27);
         expect(stat.medium).toBe(81);

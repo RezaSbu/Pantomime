@@ -3,7 +3,7 @@ import { AdabaziLogo } from './AdabaziLogo';
 
 export const SplashScreen: React.FC = () => {
   return (
-    <div className="min-h-[100dvh] bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between px-6 py-8 relative overflow-hidden">
+    <div className="h-[100dvh] max-h-[100dvh] bg-stone-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between px-6 py-6 sm:py-8 relative overflow-hidden">
       {/* Subtle Ambient Stage Glow */}
       <div
         aria-hidden="true"
@@ -29,7 +29,7 @@ export const SplashScreen: React.FC = () => {
             مسابقه گروهی پانتومیم و حدس کلمه
           </p>
           <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-0.5 whitespace-nowrap">
-            <span>۱۸ موضوع جذاب</span>
+            <span>۱۹ موضوع جذاب</span>
             <span aria-hidden="true">·</span>
             <span>چالش طلایی</span>
             <span aria-hidden="true">·</span>

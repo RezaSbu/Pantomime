@@ -200,7 +200,11 @@ export const ActiveGamePage: React.FC = () => {
   });
 
   const categoryNameMap = useMemo(() => {
-    const m: Record<string, string> = { golden: 'موضوع طلایی ۳۰ امتیازی' };
+    const m: Record<string, string> = {
+      golden: 'موضوع طلایی ۳۰ امتیازی',
+      movies: 'فیلم و سریال',
+      series: 'فیلم و سریال',
+    };
     for (const c of categories) {
       m[c.id] = c.name;
     }
@@ -378,10 +382,17 @@ export const ActiveGamePage: React.FC = () => {
     return [...tiers].sort((a, b) => a.thresholdSec - b.thresholdSec);
   };
 
+  const isSingleFramePhase =
+    activeMatch.phase === 'CONCEALED' ||
+    activeMatch.phase === 'PLAYING' ||
+    activeMatch.phase === 'PAUSED' ||
+    activeMatch.phase === 'TIME_UP' ||
+    activeMatch.phase === 'TURN_RESULT';
+
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-stone-50 dark:bg-slate-950">
-      {/* Compact Sticky Mobile Game HUD */}
-      <header className="sticky top-0 z-30 h-14 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-stone-50 dark:bg-slate-950">
+      {/* Compact Game HUD */}
+      <header className="shrink-0 z-30 h-12 sm:h-13 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5">
         <div className="max-w-5xl mx-auto h-full flex items-center justify-between gap-2">
           {/* Active Team & Round Indicator */}
           <div className="flex items-center gap-2.5 min-w-0">
@@ -485,7 +496,13 @@ export const ActiveGamePage: React.FC = () => {
       </header>
 
       {/* Main Arena Body */}
-      <div className="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col">
+      <div
+        className={
+          isSingleFramePhase
+            ? 'flex-1 min-h-0 w-full max-w-4xl mx-auto px-2.5 sm:px-6 py-2 sm:py-3 flex flex-col overflow-hidden'
+            : 'flex-1 min-h-0 w-full max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-5 flex flex-col overflow-y-auto overscroll-contain'
+        }
+      >
         {/* =====================================================================
             PHASE 1: PRE_TURN — PER-TEAM CATEGORY & DIFFICULTY SELECTION BOARD
            ===================================================================== */}
@@ -666,7 +683,7 @@ export const ActiveGamePage: React.FC = () => {
               </section>
             )}
 
-            {/* 18 Categories Board Grid */}
+            {/* 19 Categories Board Grid */}
             <section className="space-y-2.5">
               <div className="flex items-baseline justify-between px-1">
                 <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
@@ -789,40 +806,40 @@ export const ActiveGamePage: React.FC = () => {
         )}
 
         {/* =====================================================================
-            PHASE 2: CONCEALED — ACTOR CONFIDENTIAL REVEAL
+            PHASE 2: CONCEALED — ACTOR CONFIDENTIAL REVEAL (SINGLE-FRAME)
            ===================================================================== */}
         {activeMatch.phase === 'CONCEALED' && slot && currentWord && (
-          <div className="my-auto py-4">
+          <div className="flex-1 min-h-0 flex flex-col justify-center overflow-hidden">
             <div
-              className={`max-w-2xl mx-auto rounded-3xl border p-5 sm:p-8 space-y-6 animate-gentle-pop ${
+              className={`w-full max-w-xl mx-auto flex-1 min-h-0 max-h-[540px] rounded-2xl sm:rounded-3xl border p-3.5 sm:p-6 flex flex-col justify-between gap-2.5 sm:gap-4 overflow-hidden animate-gentle-pop ${
                 isGoldenTurn
                   ? 'border-amber-500/60 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-950/25 dark:to-slate-900'
                   : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
               }`}
             >
-              {slot.fallbackNotice && (
-                <div className="rounded-xl bg-amber-100/80 dark:bg-amber-950/50 border border-amber-400/40 px-4 py-2.5 text-xs font-medium text-amber-900 dark:text-amber-200 text-center">
-                  {slot.fallbackNotice}
-                </div>
-              )}
-
               {/* Topic & Score Summary */}
-              <div className="text-center space-y-1.5">
-                <div className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+              <div className="shrink-0 text-center space-y-1">
+                {slot.fallbackNotice && (
+                  <div className="rounded-xl bg-amber-100/80 dark:bg-amber-950/50 border border-amber-400/40 px-3 py-1.5 text-[11px] font-medium text-amber-900 dark:text-amber-200 truncate">
+                    {slot.fallbackNotice}
+                  </div>
+                )}
+
+                <div className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 tabular-nums truncate">
                   <span>{categoryNameMap[currentWord.categoryId] ?? currentWord.categoryId}</span>
-                  <span className="mx-2">·</span>
+                  <span className="mx-1.5">·</span>
                   <span>
                     {isGoldenTurn
-                      ? 'چالش ویژه طلایی دور آخر'
+                      ? 'چالش طلایی دور آخر'
                       : `سطح ${difficultyLabel(currentWord.difficulty)}`}
                   </span>
-                  <span className="mx-2">·</span>
+                  <span className="mx-1.5">·</span>
                   <span className="text-emerald-700 dark:text-emerald-400">
                     {formatNum(baseWordRule?.basePoints ?? currentWord.basePoints, p)} امتیاز پایه
                   </span>
                 </div>
 
-                <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                   {activeMatch.timer.durationSec !== null ? (
                     <span>
                       زمان اجرای این نوبت:{' '}
@@ -838,24 +855,24 @@ export const ActiveGamePage: React.FC = () => {
               </div>
 
               {!slot.isWordRevealedToActor ? (
-                <div className="py-4 text-center space-y-5">
-                  <div className="max-w-sm mx-auto rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-950 p-6 space-y-3">
-                    <Eye className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto" />
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white">
+                <>
+                  <div className="flex-1 min-h-0 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-950 p-4 sm:p-6 flex flex-col items-center justify-center text-center gap-2 overflow-hidden">
+                    <Eye className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white">
                       گوشی را فقط اجراکننده «{activeTeam.name}» ببیند
                     </h2>
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                      به محض لمس دکمه زیر، کلمه نمایش داده می‌شود و این موضوع و سطح فقط برای تیم «{activeTeam.name}» بسته باقی می‌ماند.
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
+                      با لمس دکمه زیر، کلمه نمایش داده می‌شود و این موضوع و سطح فقط برای تیم «{activeTeam.name}» بسته باقی می‌ماند.
                     </p>
                   </div>
 
-                  <div className="max-w-sm mx-auto space-y-2.5">
+                  <div className="shrink-0 space-y-2 w-full">
                     <button
                       type="button"
                       onClick={revealSecretWord}
-                      className="w-full min-h-[56px] inline-flex items-center justify-center gap-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white px-6 py-3.5 text-base font-black transition-all"
+                      className="w-full min-h-[48px] sm:min-h-[54px] inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white px-5 py-3 text-sm sm:text-base font-black transition-all"
                     >
-                      <Eye className="w-5 h-5" />
+                      <Eye className="w-5 h-5 shrink-0" />
                       <span>مشاهده محرمانه کلمه</span>
                     </button>
 
@@ -865,44 +882,44 @@ export const ActiveGamePage: React.FC = () => {
                         <button
                           type="button"
                           onClick={cancelPreRevealSelection}
-                          className="w-full min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                          className="w-full min-h-[42px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 whitespace-nowrap"
                         >
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-4 h-4 shrink-0" />
                           <span>تغییر موضوع (بازگشت به جدول موضوعات)</span>
                         </button>
                       )}
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="space-y-5">
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-950 p-6 sm:p-9 text-center space-y-3">
+                <>
+                  <div className="flex-1 min-h-0 rounded-2xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-950 p-4 sm:p-6 flex flex-col items-center justify-center text-center gap-2 overflow-hidden">
                     <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
                       کلمه مخفی شما:
                     </div>
                     <div
-                      className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-snug"
+                      className="text-[clamp(1.3rem,3.8vh,2.25rem)] font-black text-slate-900 dark:text-white leading-snug"
                       style={{ textWrap: 'balance' }}
                     >
                       {currentWord.text}
                     </div>
                     {currentWord.alternatives.length > 0 && (
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                      <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                         معادل‌های قابل قبول: {currentWord.alternatives.join(' ، ')}
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-3 max-w-lg mx-auto">
+                  <div className="shrink-0 space-y-2 w-full">
                     <button
                       type="button"
                       onClick={startTimerForTurn}
-                      className={`w-full min-h-[58px] inline-flex items-center justify-center gap-2.5 rounded-2xl px-6 py-4 text-base sm:text-lg font-black text-white active:scale-[0.99] transition-all ${
+                      className={`w-full min-h-[48px] sm:min-h-[54px] inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm sm:text-base font-black text-white active:scale-[0.99] transition-all whitespace-nowrap ${
                         isGoldenTurn
                           ? 'bg-amber-600 hover:bg-amber-700'
                           : 'bg-emerald-600 hover:bg-emerald-700'
                       }`}
                     >
-                      <Play className="w-5 h-5 fill-current" />
+                      <Play className="w-5 h-5 fill-current shrink-0" />
                       <span>
                         {activeMatch.timer.accumulatedElapsedMs > 0
                           ? 'ادامه تایمر با زمان باقی‌مانده'
@@ -914,7 +931,7 @@ export const ActiveGamePage: React.FC = () => {
                       <button
                         type="button"
                         onClick={concealSecretWord}
-                        className="min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 px-2 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap"
+                        className="min-h-[42px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 px-2 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap"
                       >
                         <EyeOff className="w-3.5 h-3.5 shrink-0" />
                         <span>پوشاندن</span>
@@ -924,7 +941,7 @@ export const ActiveGamePage: React.FC = () => {
                         type="button"
                         onClick={handleSwapClick}
                         disabled={swapsRemaining <= 0}
-                        className="min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 px-2 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 whitespace-nowrap"
+                        className="min-h-[42px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 px-2 py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 whitespace-nowrap"
                       >
                         <RefreshCw className="w-3.5 h-3.5 shrink-0" />
                         <span>تعویض (−{formatNum(settings.swapPenalty, p)})</span>
@@ -933,41 +950,41 @@ export const ActiveGamePage: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleReportInvalidClick}
-                        className="min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 px-2 py-2 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 whitespace-nowrap"
+                        className="min-h-[42px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 px-2 py-1.5 text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 whitespace-nowrap"
                       >
                         <Flag className="w-3.5 h-3.5 shrink-0" />
                         <span>کلمه خراب</span>
                       </button>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           </div>
         )}
 
         {/* =====================================================================
-            PHASE 3: PLAYING & PAUSED — BIG COUNTDOWN TIMER & JUDGE CONTROLS
+            PHASE 3: PLAYING & PAUSED — SINGLE-FRAME ARENA (ZERO SCROLL)
            ===================================================================== */}
         {(activeMatch.phase === 'PLAYING' || activeMatch.phase === 'PAUSED') &&
           slot &&
           currentWord && (
-            <div className="my-auto py-2 space-y-4 max-w-2xl w-full mx-auto animate-gentle-pop">
+            <div className="flex-1 min-h-0 flex flex-col justify-center overflow-hidden animate-gentle-pop">
               <div
-                className={`rounded-3xl border p-4 sm:p-7 text-center space-y-4 ${
+                className={`w-full max-w-2xl mx-auto flex-1 min-h-0 max-h-[640px] rounded-2xl sm:rounded-3xl border p-3 sm:p-5 text-center flex flex-col justify-between gap-2 sm:gap-3 overflow-hidden ${
                   isGoldenTurn
                     ? 'border-amber-500/60 bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-950/25 dark:to-slate-900'
                     : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
                 }`}
               >
-                {/* Topic & Tick Toggle Strip */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-800 dark:text-slate-200">
+                {/* Row 1: Topic, Points & Quick Audio/Tilt Controls */}
+                <div className="shrink-0 flex items-center justify-between gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                  <div className="flex items-center gap-1.5 min-w-0 truncate">
+                    <span className="text-slate-900 dark:text-slate-100 font-extrabold truncate">
                       {categoryNameMap[currentWord.categoryId] ?? currentWord.categoryId}
                     </span>
-                    <span>·</span>
-                    <span>
+                    <span className="shrink-0">·</span>
+                    <span className="shrink-0">
                       {isGoldenTurn
                         ? `طلایی (${formatNum(settings.goldenBasePoints, p)} امتیاز)`
                         : `${difficultyLabel(currentWord.difficulty)} (${formatNum(
@@ -977,30 +994,49 @@ export const ActiveGamePage: React.FC = () => {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateSettings({ tickSoundEnabled: !settings.tickSoundEnabled })
-                    }
-                    className={`min-h-[34px] inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                      settings.soundEnabled && settings.tickSoundEnabled
-                        ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
-                        : 'text-slate-400 bg-stone-100 dark:bg-slate-800'
-                    }`}
-                  >
-                    {settings.soundEnabled && settings.tickSoundEnabled ? (
-                      <Bell className="w-3.5 h-3.5" />
-                    ) : (
-                      <BellOff className="w-3.5 h-3.5" />
-                    )}
-                    <span>تیک‌تاک ساعت</span>
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateSettings({ tickSoundEnabled: !settings.tickSoundEnabled })
+                      }
+                      className={`min-h-[32px] inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-colors whitespace-nowrap ${
+                        settings.soundEnabled && settings.tickSoundEnabled
+                          ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
+                          : 'text-slate-400 bg-stone-100 dark:bg-slate-800'
+                      }`}
+                      title="صدای تیک‌تاک ساعت"
+                    >
+                      {settings.soundEnabled && settings.tickSoundEnabled ? (
+                        <Bell className="w-3.5 h-3.5 shrink-0" />
+                      ) : (
+                        <BellOff className="w-3.5 h-3.5 shrink-0" />
+                      )}
+                      <span className="hidden xs:inline sm:inline">تیک‌تاک</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleToggleTiltInArena}
+                      className={`min-h-[32px] inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-colors whitespace-nowrap ${
+                        settings.tiltControlsEnabled
+                          ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
+                          : 'text-slate-400 bg-stone-100 dark:bg-slate-800'
+                      }`}
+                      title="کنترل حرکتی با خم کردن گوشی"
+                    >
+                      <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                      <span className="hidden sm:inline">
+                        {settings.tiltControlsEnabled ? 'حسگر فعال' : 'حسگر حرکتی'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Giant Countdown Clock */}
-                <div className="space-y-2">
+                {/* Row 2: Responsive Countdown Clock, Progress Bar & Speed Bonus / Fouls */}
+                <div className="shrink-0 space-y-1 sm:space-y-1.5">
                   <div
-                    className={`text-6xl sm:text-7xl font-black tracking-tight tabular-nums transition-colors ${
+                    className={`text-[clamp(2.25rem,6.5vh,4rem)] leading-none font-black tracking-tight tabular-nums transition-colors ${
                       timerSnap.remainingSeconds !== null && timerSnap.remainingSeconds <= 10
                         ? `text-rose-600 dark:text-rose-400 ${
                             activeMatch.phase === 'PLAYING' ? 'animate-pulse' : ''
@@ -1017,9 +1053,8 @@ export const ActiveGamePage: React.FC = () => {
                       : formatClock(timerSnap.elapsedSeconds, p)}
                   </div>
 
-                  {/* Progress Bar */}
                   {timerSnap.remainingSeconds !== null && (
-                    <div className="max-w-md mx-auto h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className="max-w-md mx-auto h-2 sm:h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-transform duration-100 origin-right ${
                           timerSnap.remainingSeconds <= 10
@@ -1035,40 +1070,39 @@ export const ActiveGamePage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Stepped Speed Bonus & Live Foul Counter Bar */}
-                  <div className="text-xs font-bold tabular-nums pt-0.5 space-y-1">
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] sm:text-xs font-bold tabular-nums">
                     {activeBonusWindow ? (
-                      <div className="inline-flex flex-wrap items-center justify-center gap-1 text-emerald-700 dark:text-emerald-400">
+                      <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                         <Zap className="w-3.5 h-3.5 shrink-0" />
                         <span>
-                          امتیاز تایم فعلی: +{formatNum(activeBonusWindow.activeBonus, p)} (تا ثانیه{' '}
-                          {formatNum(activeBonusWindow.nextDeadlineSec, p)} · پله بعد:{' '}
+                          امتیاز تایم: +{formatNum(activeBonusWindow.activeBonus, p)} (تا ثانیه{' '}
+                          {formatNum(activeBonusWindow.nextDeadlineSec, p)} · بعد:{' '}
                           {activeBonusWindow.nextBonus > 0
                             ? `+${formatNum(activeBonusWindow.nextBonus, p)}`
                             : formatNum(0, p)}
                           )
                         </span>
-                      </div>
+                      </span>
                     ) : (
-                      <div className="text-slate-500 dark:text-slate-400">
+                      <span className="text-slate-500 dark:text-slate-400">
                         سپری‌شده: {formatNum(timerSnap.elapsedSeconds, p)} ثانیه · امتیاز تایم: ۰
-                      </div>
+                      </span>
                     )}
 
                     {slot.wrongGuessesInSlot > 0 && (
-                      <div className="text-rose-600 dark:text-rose-400">
-                        خطاهای ثبت‌شده در این نوبت: {formatNum(slot.wrongGuessesInSlot, p)} خطا (−
-                        {formatNum(slot.wrongGuessesInSlot * settings.foulPenalty, p)} امتیاز)
-                      </div>
+                      <span className="text-rose-600 dark:text-rose-400">
+                        · خطا: {formatNum(slot.wrongGuessesInSlot, p)} (−
+                        {formatNum(slot.wrongGuessesInSlot * settings.foulPenalty, p)})
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Secret Word Card (Can be masked so phone can sit on the table!) */}
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-950 p-4 sm:p-6 space-y-2.5">
+                {/* Row 3: Flexible Secret Word Stage */}
+                <div className="flex-1 min-h-0 rounded-2xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-950 px-3 sm:px-5 py-2 sm:py-3 flex flex-col items-center justify-center gap-1.5 overflow-hidden">
                   {activeMatch.phase === 'PAUSED' ? (
-                    <div className="py-2 space-y-1.5">
-                      <div className="text-base font-extrabold text-amber-600 dark:text-amber-400">
+                    <div className="space-y-1">
+                      <div className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400">
                         زمان متوقف شده است (کلمه پنهان شد)
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1076,14 +1110,14 @@ export const ActiveGamePage: React.FC = () => {
                       </p>
                     </div>
                   ) : slot.isWordHiddenDuringPlay ? (
-                    <div className="py-2 space-y-2.5">
+                    <div className="space-y-2">
                       <div className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">
                         کلمه پنهان است تا جمع بتواند تایمر را ببیند
                       </div>
                       <button
                         type="button"
                         onClick={togglePlayWordMask}
-                        className="min-h-[44px] inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 text-xs font-extrabold"
+                        className="min-h-[40px] inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-1.5 text-xs font-extrabold"
                       >
                         <Eye className="w-4 h-4" />
                         <span>مشاهده مجدد کلمه</span>
@@ -1092,144 +1126,125 @@ export const ActiveGamePage: React.FC = () => {
                   ) : (
                     <>
                       <div
-                        className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-snug"
+                        className="text-[clamp(1.2rem,3.6vh,2rem)] font-black text-slate-900 dark:text-white leading-snug"
                         style={{ textWrap: 'balance' }}
                       >
                         {currentWord.text}
                       </div>
-                      <div>
-                        <button
-                          type="button"
-                          onClick={togglePlayWordMask}
-                          className="min-h-[38px] inline-flex items-center gap-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-3 py-1"
-                        >
-                          <EyeOff className="w-3.5 h-3.5" />
-                          <span>مخفی کردن کلمه (گذاشتن گوشی روی میز)</span>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={togglePlayWordMask}
+                        className="min-h-[32px] inline-flex items-center gap-1.5 rounded-lg text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-2.5 py-0.5 whitespace-nowrap"
+                      >
+                        <EyeOff className="w-3.5 h-3.5 shrink-0" />
+                        <span>مخفی کردن کلمه (گذاشتن روی میز)</span>
+                      </button>
                     </>
                   )}
                 </div>
 
-                {/* Primary Thumb-Zone Judge Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={correctGuess}
-                    disabled={activeMatch.phase !== 'PLAYING' || slot.isScored}
-                    className="min-h-[62px] inline-flex items-center justify-center gap-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40 text-white px-6 py-4 text-lg font-black transition-all"
-                  >
-                    <CheckCircle2 className="w-6 h-6 shrink-0" />
-                    <span>درست گفتند!</span>
-                  </button>
+                {/* Row 4: Unified Thumb-Zone Judge & Utility Controls */}
+                <div className="shrink-0 space-y-2">
+                  {/* Primary Judge Row: درست + خطا + غلط */}
+                  <div className="grid grid-cols-12 gap-2">
+                    <button
+                      type="button"
+                      onClick={correctGuess}
+                      disabled={activeMatch.phase !== 'PLAYING' || slot.isScored}
+                      className="col-span-6 min-h-[46px] sm:min-h-[52px] inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-40 text-white px-3 py-2 text-sm sm:text-base font-black transition-all whitespace-nowrap"
+                    >
+                      <CheckCircle2 className="w-5 h-5 shrink-0" />
+                      <span>درست گفتند!</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={handleFoulClick}
-                    disabled={activeMatch.phase !== 'PLAYING' || slot.isScored}
-                    className="min-h-[62px] inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-rose-500/40 bg-rose-50/70 dark:bg-rose-950/25 hover:bg-rose-100/70 dark:hover:bg-rose-950/45 active:scale-[0.98] disabled:opacity-40 text-rose-700 dark:text-rose-300 px-5 py-4 text-lg font-black transition-all whitespace-nowrap tabular-nums"
-                  >
-                    <AlertTriangle className="w-5 h-5 shrink-0" />
-                    <span>خطا</span>
-                    {slot.wrongGuessesInSlot > 0 && (
-                      <span className="text-sm font-extrabold">
-                        ({formatNum(slot.wrongGuessesInSlot, p)})
-                      </span>
+                    <button
+                      type="button"
+                      onClick={handleFoulClick}
+                      disabled={activeMatch.phase !== 'PLAYING' || slot.isScored}
+                      className="col-span-3 min-h-[46px] sm:min-h-[52px] inline-flex items-center justify-center gap-1 rounded-2xl border-2 border-amber-500/45 bg-amber-50/70 dark:bg-amber-950/25 hover:bg-amber-100/70 dark:hover:bg-amber-950/45 active:scale-[0.98] disabled:opacity-40 text-amber-800 dark:text-amber-300 px-2 py-2 text-sm sm:text-base font-black transition-all whitespace-nowrap tabular-nums"
+                    >
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      <span>خطا</span>
+                      {slot.wrongGuessesInSlot > 0 && (
+                        <span className="text-xs font-extrabold">
+                          ({formatNum(slot.wrongGuessesInSlot, p)})
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setConfirmEndTurn(true)}
+                      className="col-span-3 min-h-[46px] sm:min-h-[52px] inline-flex items-center justify-center gap-1 rounded-2xl border-2 border-rose-500/45 bg-rose-50/70 dark:bg-rose-950/25 hover:bg-rose-100/70 dark:hover:bg-rose-950/45 active:scale-[0.98] text-rose-700 dark:text-rose-300 px-2 py-2 text-sm sm:text-base font-black transition-all whitespace-nowrap"
+                    >
+                      <XCircle className="w-4 h-4 shrink-0" />
+                      <span>غلط</span>
+                    </button>
+                  </div>
+
+                  {/* Secondary Turn Utility Row */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {activeMatch.phase === 'PLAYING' ? (
+                      <button
+                        type="button"
+                        onClick={pauseGame}
+                        className="min-h-[40px] sm:min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-800/70 px-2 text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap"
+                      >
+                        <Pause className="w-3.5 h-3.5 shrink-0" />
+                        <span>توقف زمان</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={resumeGame}
+                        className="min-h-[40px] sm:min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl bg-amber-500 text-slate-950 px-2 text-[11px] sm:text-xs font-black whitespace-nowrap"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                        <span>ادامه تایمر</span>
+                      </button>
                     )}
-                  </button>
-                </div>
 
-                {/* Secondary Action Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                  {activeMatch.phase === 'PLAYING' ? (
                     <button
                       type="button"
-                      onClick={pauseGame}
-                      className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-800/70 text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap"
+                      onClick={handleSwapClick}
+                      disabled={swapsRemaining <= 0}
+                      className="min-h-[40px] sm:min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-800/70 disabled:opacity-40 px-2 text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap"
                     >
-                      <Pause className="w-4 h-4 shrink-0" />
-                      <span>توقف زمان</span>
+                      <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                      <span>تعویض (−{formatNum(settings.swapPenalty, p)})</span>
                     </button>
-                  ) : (
+
                     <button
                       type="button"
-                      onClick={resumeGame}
-                      className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-black whitespace-nowrap"
+                      onClick={handleReportInvalidClick}
+                      className="min-h-[40px] sm:min-h-[44px] inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-800/70 px-2 text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap"
                     >
-                      <Play className="w-4 h-4 fill-current shrink-0" />
-                      <span>ادامه تایمر</span>
+                      <Flag className="w-3.5 h-3.5 shrink-0" />
+                      <span>کلمه خراب</span>
                     </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleSwapClick}
-                    disabled={swapsRemaining <= 0}
-                    className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-800/70 disabled:opacity-40 text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap"
-                  >
-                    <RefreshCw className="w-4 h-4 shrink-0" />
-                    <span>تعویض (−{formatNum(settings.swapPenalty, p)})</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleReportInvalidClick}
-                    className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-800/70 text-xs font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap"
-                  >
-                    <Flag className="w-4 h-4 shrink-0" />
-                    <span>کلمه خراب</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setConfirmEndTurn(true)}
-                    className="min-h-[46px] inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/35 dark:border-rose-500/35 bg-rose-50/60 dark:bg-rose-950/25 text-xs font-extrabold text-rose-600 dark:text-rose-400 whitespace-nowrap"
-                  >
-                    <XCircle className="w-4 h-4 shrink-0" />
-                    <span>غلط</span>
-                  </button>
-                </div>
-
-                {/* Optional Tilt Sensor Toggle */}
-                <div className="pt-1 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={handleToggleTiltInArena}
-                    className={`min-h-[36px] inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-[11px] font-semibold transition-colors ${
-                      settings.tiltControlsEnabled
-                        ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40'
-                        : 'text-slate-500 dark:text-slate-400'
-                    }`}
-                  >
-                    <Smartphone className="w-3.5 h-3.5" />
-                    <span>
-                      {settings.tiltControlsEnabled
-                        ? 'کنترل حرکتی با خم کردن گوشی فعال است'
-                        : 'فعال‌سازی کنترل با خم کردن گوشی'}
-                    </span>
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
         {/* =====================================================================
-            PHASE 4: TIME_UP
+            PHASE 4: TIME_UP (SINGLE-FRAME)
            ===================================================================== */}
         {activeMatch.phase === 'TIME_UP' && slot && currentWord && (
-          <div className="my-auto max-w-lg w-full mx-auto rounded-3xl border-2 border-rose-500/50 bg-white dark:bg-slate-900 p-6 sm:p-10 text-center space-y-6 animate-gentle-pop">
-            <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8" />
+          <div className="my-auto max-w-lg w-full mx-auto rounded-3xl border-2 border-rose-500/50 bg-white dark:bg-slate-900 p-5 sm:p-8 text-center space-y-4 sm:space-y-5 animate-gentle-pop">
+            <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
+              <AlertTriangle className="w-7 h-7" />
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-3xl font-black text-rose-600 dark:text-rose-400">
+            <div className="space-y-1.5">
+              <h2 className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400">
                 وقت تمام شد!
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                 مهلت اجرای این نوبت به پایان رسید. عبارت این نوبت:
               </p>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white pt-2">
+              <div className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white pt-1">
                 «{currentWord.text}»
               </div>
             </div>
@@ -1237,7 +1252,7 @@ export const ActiveGamePage: React.FC = () => {
             <button
               type="button"
               onClick={() => endTurnManuallyOrTimeout('timeout')}
-              className="w-full min-h-[54px] inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-3.5 text-base font-black"
+              className="w-full min-h-[48px] sm:min-h-[54px] inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-3 text-sm sm:text-base font-black"
             >
               <span>ثبت نتیجه و ادامه</span>
               <ChevronLeft className="w-5 h-5" />
@@ -1246,7 +1261,7 @@ export const ActiveGamePage: React.FC = () => {
         )}
 
         {/* =====================================================================
-            PHASE 5: TURN_RESULT — DETAILED ITEMIZED TURN SCORE BREAKDOWN
+            PHASE 5: TURN_RESULT — DETAILED ITEMIZED TURN SCORE (SINGLE-FRAME)
            ===================================================================== */}
         {activeMatch.phase === 'TURN_RESULT' && (() => {
           const turnEvents = activeMatch.turnCompletedEvents;
@@ -1274,202 +1289,206 @@ export const ActiveGamePage: React.FC = () => {
           const isSolved = finalEv?.outcome === 'correct';
 
           return (
-            <div className="my-auto max-w-xl w-full mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-8 space-y-5 animate-gentle-pop">
-              {/* Team & Word Summary Header */}
-              <div className="text-center space-y-2">
-                <div
-                  className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-white shadow-sm"
-                  style={{ backgroundColor: activeTeam.color }}
-                >
-                  <DynamicIcon name={activeTeam.icon} className="w-7 h-7" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                  جزئیات امتیاز نوبت «{activeTeam.name}»
-                </h2>
-                {finalEv && (
-                  <div className="space-y-1 pt-1">
-                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                      «{finalEv.wordText}»
+            <div className="flex-1 min-h-0 flex flex-col justify-center overflow-hidden">
+              <div className="w-full max-w-xl mx-auto flex-1 min-h-0 max-h-[580px] rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-6 flex flex-col justify-between gap-2.5 sm:gap-4 overflow-hidden animate-gentle-pop">
+                {/* Team & Word Summary Header */}
+                <div className="shrink-0 text-center space-y-1">
+                  <div className="inline-flex items-center justify-center gap-2">
+                    <div
+                      className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0"
+                      style={{ backgroundColor: activeTeam.color }}
+                    >
+                      <DynamicIcon name={activeTeam.icon} className="w-5 h-5" />
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                      <span>{categoryNameMap[finalEv.categoryId] ?? finalEv.categoryId}</span>
-                      <span className="mx-1.5">·</span>
-                      <span>
-                        {finalEv.kind === 'golden'
-                          ? 'موضوع طلایی ۳۰ امتیازی'
-                          : `سطح ${difficultyLabel(finalEv.difficulty)}`}
-                      </span>
-                      <span className="mx-1.5">·</span>
-                      <span>زمان: {formatNum(finalEv.elapsedSeconds, p)} ثانیه</span>
-                      <span className="mx-1.5">·</span>
+                    <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white">
+                      جزئیات امتیاز نوبت «{activeTeam.name}»
+                    </h2>
+                  </div>
+                  {finalEv && (
+                    <div className="space-y-0.5 pt-0.5">
+                      <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
+                        «{finalEv.wordText}»
+                      </div>
+                      <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 tabular-nums truncate">
+                        <span>{categoryNameMap[finalEv.categoryId] ?? finalEv.categoryId}</span>
+                        <span className="mx-1.5">·</span>
+                        <span>
+                          {finalEv.kind === 'golden'
+                            ? 'موضوع طلایی ۳۰ امتیازی'
+                            : `سطح ${difficultyLabel(finalEv.difficulty)}`}
+                        </span>
+                        <span className="mx-1.5">·</span>
+                        <span>زمان: {formatNum(finalEv.elapsedSeconds, p)} ثانیه</span>
+                        <span className="mx-1.5">·</span>
+                        <span
+                          className={
+                            isSolved
+                              ? 'font-bold text-emerald-700 dark:text-emerald-400'
+                              : 'font-bold text-rose-600 dark:text-rose-400'
+                          }
+                        >
+                          {isSolved
+                            ? 'پاسخ درست'
+                            : finalEv.outcome === 'manual_end'
+                            ? 'غلط'
+                            : 'اتمام زمان'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Complete Itemized Score Receipt */}
+                <div className="flex-1 min-h-0 flex flex-col justify-center space-y-1.5 overflow-hidden">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-stone-50/80 dark:bg-slate-950/70 divide-y divide-slate-200/80 dark:divide-slate-800 text-xs sm:text-sm tabular-nums">
+                    {/* 1. Base Word Score */}
+                    <div className="px-3.5 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+                      <div className="text-slate-700 dark:text-slate-300 truncate">
+                        <span className="font-bold">امتیاز کلمه</span>
+                        <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-[11px]">
+                          {isSolved && finalEv
+                            ? finalEv.kind === 'golden'
+                              ? `(طلایی ${formatNum(turnBasePoints, p)} امتیازی)`
+                              : `(سطح ${difficultyLabel(finalEv.difficulty)})`
+                            : finalEv?.outcome === 'manual_end'
+                            ? '(ثبت غلط)'
+                            : '(اتمام مهلت)'}
+                        </span>
+                      </div>
                       <span
-                        className={
-                          isSolved
-                            ? 'font-bold text-emerald-700 dark:text-emerald-400'
-                            : 'font-bold text-rose-600 dark:text-rose-400'
-                        }
+                        className={`font-extrabold whitespace-nowrap ${
+                          turnBasePoints > 0
+                            ? 'text-emerald-700 dark:text-emerald-400'
+                            : 'text-slate-400'
+                        }`}
                       >
-                        {isSolved
-                          ? 'پاسخ درست'
-                          : finalEv.outcome === 'manual_end'
-                          ? 'غلط'
-                          : 'اتمام زمان'}
+                        {turnBasePoints > 0
+                          ? `+${formatNum(turnBasePoints, p)} امتیاز`
+                          : `${formatNum(0, p)} امتیاز`}
+                      </span>
+                    </div>
+
+                    {/* 2. Stepped Time Bonus */}
+                    <div className="px-3.5 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+                      <div className="text-slate-700 dark:text-slate-300 truncate">
+                        <span className="font-bold">امتیاز تایم</span>
+                        <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-[11px]">
+                          {isSolved && finalEv
+                            ? turnSpeedBonus > 0
+                              ? `(${formatNum(finalEv.elapsedSeconds, p)} ثانیه)`
+                              : '(بدون پاداش سرعت)'
+                            : '(عدم پاسخ صحیح)'}
+                        </span>
+                      </div>
+                      <span
+                        className={`font-extrabold whitespace-nowrap ${
+                          turnSpeedBonus > 0
+                            ? 'text-emerald-700 dark:text-emerald-400'
+                            : 'text-slate-400'
+                        }`}
+                      >
+                        {turnSpeedBonus > 0
+                          ? `+${formatNum(turnSpeedBonus, p)} امتیاز`
+                          : `${formatNum(0, p)} امتیاز`}
+                      </span>
+                    </div>
+
+                    {/* 3. Word Swap Deduction */}
+                    <div className="px-3.5 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+                      <div className="text-slate-700 dark:text-slate-300 truncate">
+                        <span className="font-bold">کسر تعویض کلمه</span>
+                        <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-[11px]">
+                          {swappedWords.length > 0
+                            ? `(${formatNum(swappedWords.length, p)} مرتبه)`
+                            : '(بدون تعویض)'}
+                        </span>
+                      </div>
+                      <span
+                        className={`font-extrabold whitespace-nowrap ${
+                          turnSwapPenalty > 0
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : 'text-slate-400'
+                        }`}
+                      >
+                        {turnSwapPenalty > 0
+                          ? `−${formatNum(turnSwapPenalty, p)} امتیاز`
+                          : `${formatNum(0, p)} امتیاز`}
+                      </span>
+                    </div>
+
+                    {/* 4. Foul Deduction */}
+                    <div className="px-3.5 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+                      <div className="text-slate-700 dark:text-slate-300 truncate">
+                        <span className="font-bold">کسر بابت خطا</span>
+                        <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-[11px]">
+                          {turnFoulCount > 0
+                            ? `(${formatNum(turnFoulCount, p)} خطا)`
+                            : '(بدون خطا)'}
+                        </span>
+                      </div>
+                      <span
+                        className={`font-extrabold whitespace-nowrap ${
+                          turnFoulPenalty > 0
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : 'text-slate-400'
+                        }`}
+                      >
+                        {turnFoulPenalty > 0
+                          ? `−${formatNum(turnFoulPenalty, p)} امتیاز`
+                          : `${formatNum(0, p)} امتیاز`}
+                      </span>
+                    </div>
+
+                    {/* 5. Final Net Score Earned This Turn */}
+                    <div className="px-3.5 py-2.5 bg-white/80 dark:bg-slate-900/80 flex items-center justify-between gap-2">
+                      <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                        امتیاز نهایی این نوبت
+                      </span>
+                      <span
+                        className={`text-base sm:text-lg font-black whitespace-nowrap ${
+                          turnNetPoints > 0
+                            ? 'text-emerald-700 dark:text-emerald-400'
+                            : turnNetPoints < 0
+                            ? 'text-rose-600 dark:text-rose-400'
+                            : 'text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {formatSignedNum(turnNetPoints, p)} امتیاز
+                      </span>
+                    </div>
+
+                    {/* 6. Cumulative Team Total */}
+                    <div className="px-3.5 py-2 flex items-center justify-between gap-2 text-xs">
+                      <span className="font-bold text-slate-600 dark:text-slate-400 truncate">
+                        مجموع امتیاز «{activeTeam.name}» در مسابقه
+                      </span>
+                      <span className="font-black text-sm sm:text-base text-slate-900 dark:text-white whitespace-nowrap">
+                        {formatNum(activeTeamStanding?.totalScore ?? 0, p)} امتیاز
                       </span>
                     </div>
                   </div>
-                )}
+
+                  {swappedWords.length > 0 && (
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 text-center truncate">
+                      کلمه تعویض‌شده قبلی:{' '}
+                      {swappedWords.map((sw) => `«${sw.wordText}»`).join(' ، ')}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={nextTurnOrSummary}
+                  className="shrink-0 w-full min-h-[48px] sm:min-h-[54px] inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white px-5 py-3 text-sm sm:text-base font-black transition-all whitespace-nowrap"
+                >
+                  <span>
+                    {nextTeamInRound
+                      ? `ادامه به نوبت «${nextTeamInRound.name}»`
+                      : 'مشاهده جدول پایان این دور'}
+                  </span>
+                  <ChevronLeft className="w-5 h-5 shrink-0" />
+                </button>
               </div>
-
-              {/* Complete Itemized Score Receipt */}
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-stone-50/80 dark:bg-slate-950/70 divide-y divide-slate-200/80 dark:divide-slate-800 text-xs sm:text-sm tabular-nums">
-                {/* 1. Base Word Score */}
-                <div className="px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="text-slate-700 dark:text-slate-300">
-                    <span className="font-bold">امتیاز کلمه</span>
-                    <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-xs">
-                      {isSolved && finalEv
-                        ? finalEv.kind === 'golden'
-                          ? `(عبارت ${formatNum(turnBasePoints, p)} امتیازی طلایی)`
-                          : `(کلمه ${formatNum(turnBasePoints, p)} امتیازی سطح ${difficultyLabel(
-                              finalEv.difficulty
-                            )})`
-                        : finalEv?.outcome === 'manual_end'
-                        ? '(ثبت غلط)'
-                        : '(اتمام مهلت زمانی)'}
-                    </span>
-                  </div>
-                  <span
-                    className={`font-extrabold whitespace-nowrap ${
-                      turnBasePoints > 0
-                        ? 'text-emerald-700 dark:text-emerald-400'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {turnBasePoints > 0
-                      ? `+${formatNum(turnBasePoints, p)} امتیاز`
-                      : `${formatNum(0, p)} امتیاز`}
-                  </span>
-                </div>
-
-                {/* 2. Stepped Time Bonus */}
-                <div className="px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="text-slate-700 dark:text-slate-300">
-                    <span className="font-bold">امتیاز تایم</span>
-                    <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-xs">
-                      {isSolved && finalEv
-                        ? turnSpeedBonus > 0
-                          ? `(پاداش سرعت در ${formatNum(finalEv.elapsedSeconds, p)} ثانیه)`
-                          : `(${formatNum(finalEv.elapsedSeconds, p)} ثانیه — بدون پاداش سرعت)`
-                        : '(عدم پاسخ صحیح)'}
-                    </span>
-                  </div>
-                  <span
-                    className={`font-extrabold whitespace-nowrap ${
-                      turnSpeedBonus > 0
-                        ? 'text-emerald-700 dark:text-emerald-400'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {turnSpeedBonus > 0
-                      ? `+${formatNum(turnSpeedBonus, p)} امتیاز`
-                      : `${formatNum(0, p)} امتیاز`}
-                  </span>
-                </div>
-
-                {/* 3. Word Swap Deduction */}
-                <div className="px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="text-slate-700 dark:text-slate-300">
-                    <span className="font-bold">کسر بابت تعویض کلمه</span>
-                    <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-xs">
-                      {swappedWords.length > 0
-                        ? `(${formatNum(swappedWords.length, p)} مرتبه تعویض)`
-                        : '(بدون تعویض)'}
-                    </span>
-                  </div>
-                  <span
-                    className={`font-extrabold whitespace-nowrap ${
-                      turnSwapPenalty > 0
-                        ? 'text-rose-600 dark:text-rose-400'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {turnSwapPenalty > 0
-                      ? `−${formatNum(turnSwapPenalty, p)} امتیاز`
-                      : `${formatNum(0, p)} امتیاز`}
-                  </span>
-                </div>
-
-                {/* 4. Foul Deduction */}
-                <div className="px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="text-slate-700 dark:text-slate-300">
-                    <span className="font-bold">کسر بابت خطا</span>
-                    <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-xs">
-                      {turnFoulCount > 0
-                        ? `(${formatNum(turnFoulCount, p)} خطا در اجرا)`
-                        : '(بدون خطا)'}
-                    </span>
-                  </div>
-                  <span
-                    className={`font-extrabold whitespace-nowrap ${
-                      turnFoulPenalty > 0
-                        ? 'text-rose-600 dark:text-rose-400'
-                        : 'text-slate-400'
-                    }`}
-                  >
-                    {turnFoulPenalty > 0
-                      ? `−${formatNum(turnFoulPenalty, p)} امتیاز`
-                      : `${formatNum(0, p)} امتیاز`}
-                  </span>
-                </div>
-
-                {/* 5. Final Net Score Earned This Turn */}
-                <div className="px-4 py-3.5 bg-white/80 dark:bg-slate-900/80 flex items-center justify-between gap-3">
-                  <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                    امتیاز نهایی این نوبت
-                  </span>
-                  <span
-                    className={`text-lg sm:text-xl font-black whitespace-nowrap ${
-                      turnNetPoints > 0
-                        ? 'text-emerald-700 dark:text-emerald-400'
-                        : turnNetPoints < 0
-                        ? 'text-rose-600 dark:text-rose-400'
-                        : 'text-slate-600 dark:text-slate-300'
-                    }`}
-                  >
-                    {formatSignedNum(turnNetPoints, p)} امتیاز
-                  </span>
-                </div>
-
-                {/* 6. Cumulative Team Total */}
-                <div className="px-4 py-3 flex items-center justify-between gap-3 text-xs sm:text-sm">
-                  <span className="font-bold text-slate-600 dark:text-slate-400">
-                    مجموع کل امتیاز «{activeTeam.name}» در مسابقه
-                  </span>
-                  <span className="font-black text-base text-slate-900 dark:text-white whitespace-nowrap">
-                    {formatNum(activeTeamStanding?.totalScore ?? 0, p)} امتیاز
-                  </span>
-                </div>
-              </div>
-
-              {swappedWords.length > 0 && (
-                <div className="text-xs text-slate-500 dark:text-slate-400 text-center">
-                  کلمه تعویض‌شده قبلی در این نوبت:{' '}
-                  {swappedWords.map((sw) => `«${sw.wordText}»`).join(' ، ')}
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={nextTurnOrSummary}
-                className="w-full min-h-[56px] inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white px-6 py-4 text-base font-black transition-all"
-              >
-                <span>
-                  {nextTeamInRound
-                    ? `ادامه به نوبت «${nextTeamInRound.name}»`
-                    : 'مشاهده جدول پایان این دور'}
-                </span>
-                <ChevronLeft className="w-5 h-5" />
-              </button>
             </div>
           );
         })()}
