@@ -90,10 +90,10 @@ export const RulesSheet: React.FC = () => {
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-1">
               <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <RefreshCw className="w-3.5 h-3.5 text-rose-500" />
-                <span>خطا (−{formatNum(1, p)}) و تعویض (−{formatNum(1, p)})</span>
+                <span>خطا (حداکثر ۳ بار −{formatNum(1, p)}) و تعویض (−{formatNum(1, p)})</span>
               </div>
               <p className="text-slate-500 dark:text-slate-400">
-                هر خطای اجراکننده (مثل حرف زدن یا اشاره مستقیم) ۱ امتیاز کم می‌کند. تعویض کلمه هم ۱ امتیاز کسر می‌کند و دکمه «غلط» برای ثبت عدم پاسخ صحیح است.
+                هر خطای اجراکننده (مثل حرف زدن یا اشاره مستقیم) ۱ امتیاز کم می‌کند و در هر کلمه <strong>حداکثر تا ۳ بار</strong> امکان ثبت خطا وجود دارد و پس از آن دکمه خطا قفل می‌شود. تعویض کلمه هم ۱ بار و با کسر ۱ امتیاز مجاز است و دکمه «غلط» برای ثبت عدم پاسخ صحیح است.
               </p>
             </div>
 

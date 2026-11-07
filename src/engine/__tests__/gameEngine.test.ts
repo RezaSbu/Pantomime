@@ -610,6 +610,44 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(t2.totalScore).toBe(-2);
   });
 
+  it('strictly caps fouls at 3 per word and ignores the 4th foul attempt', () => {
+    const teams = createDefaultTeams(2);
+    let match = createMatchState(
+      {
+        teams,
+        totalRounds: 1,
+        startOrderMode: 'first',
+      },
+      DEFAULT_SETTINGS,
+      1000
+    );
+
+    match = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+      forcedCategoryId: 'general',
+      forcedDifficulty: 'easy',
+      now: 1000,
+    }).state;
+    match = revealWordToActor(match, 1000);
+    match = startTurnPlayTimer(match, 1000);
+
+    // 1st foul
+    match = recordWrongGuessInTurn(match, 2000);
+    expect(match.currentSlot?.wrongGuessesInSlot).toBe(1);
+
+    // 2nd foul
+    match = recordWrongGuessInTurn(match, 3000);
+    expect(match.currentSlot?.wrongGuessesInSlot).toBe(2);
+
+    // 3rd foul
+    match = recordWrongGuessInTurn(match, 4000);
+    expect(match.currentSlot?.wrongGuessesInSlot).toBe(3);
+
+    // 4th foul attempt -> MUST be rejected (still 3)
+    const after4th = recordWrongGuessInTurn(match, 5000);
+    expect(after4th).toBe(match);
+    expect(after4th.currentSlot?.wrongGuessesInSlot).toBe(3);
+  });
+
   it('prevents double scoring on rapid double-click and triggers equal-opportunity Sudden Death on tie', () => {
     const teams = createDefaultTeams(2);
     let match = createMatchState(
@@ -700,9 +738,9 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(pardis?.basePoints).toBe(6);
 
     const report = validateWordBank(INITIAL_WORDS, INITIAL_CATEGORIES);
-    expect(report.totalWords).toBe(5700);
+    expect(report.totalWords).toBe(5800);
     expect(report.regularWordsCount).toBe(5400);
-    expect(report.goldenWordsCount).toBe(300);
+    expect(report.goldenWordsCount).toBe(400);
     expect(report.duplicateIds.length).toBe(0);
     expect(report.duplicateTexts.length).toBe(0);
     expect(report.orphanCategoryWords.length).toBe(0);
@@ -710,7 +748,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
 
     for (const stat of report.categoryStats) {
       if (stat.categoryId === 'golden') {
-        expect(stat.total).toBe(300);
+        expect(stat.total).toBe(400);
       } else if (stat.categoryId === 'movies_series') {
         expect(stat.easy).toBe(54);
         expect(stat.medium).toBe(162);

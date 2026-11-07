@@ -53,21 +53,21 @@ class FeedbackEngine {
 
   private createMasterBus(ctx: AudioContext): MasterBus {
     const masterGain = ctx.createGain();
-    masterGain.gain.value = 0.94;
+    masterGain.gain.value = 1.35;
 
     const compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -14;
-    compressor.knee.value = 18;
-    compressor.ratio.value = 4.2;
-    compressor.attack.value = 0.003;
-    compressor.release.value = 0.16;
+    compressor.threshold.value = -12;
+    compressor.knee.value = 16;
+    compressor.ratio.value = 3.6;
+    compressor.attack.value = 0.002;
+    compressor.release.value = 0.14;
 
     const dryInput = ctx.createGain();
-    dryInput.gain.value = 1.0;
+    dryInput.gain.value = 1.25;
 
     // Warm studio room / slapback ambience network
     const reverbSend = ctx.createGain();
-    reverbSend.gain.value = 1.0;
+    reverbSend.gain.value = 1.1;
 
     const delayA = ctx.createDelay(0.5);
     delayA.delayTime.value = 0.082;
@@ -77,7 +77,7 @@ class FeedbackEngine {
     const fbA = ctx.createGain();
     fbA.gain.value = 0.26;
     const wetA = ctx.createGain();
-    wetA.gain.value = 0.24;
+    wetA.gain.value = 0.26;
 
     const delayB = ctx.createDelay(0.5);
     delayB.delayTime.value = 0.155;
@@ -85,7 +85,7 @@ class FeedbackEngine {
     filterB.type = 'lowpass';
     filterB.frequency.value = 1750;
     const wetB = ctx.createGain();
-    wetB.gain.value = 0.14;
+    wetB.gain.value = 0.16;
 
     reverbSend.connect(delayA);
     delayA.connect(filterA);
@@ -372,7 +372,7 @@ class FeedbackEngine {
     const audio = this.getBus();
     if (!audio) return;
     const { ctx, bus } = audio;
-    const { pitchScale = 1.0, gainPeak = 0.2, delaySec = 0 } = options;
+    const { pitchScale = 1.0, gainPeak = 0.28, delaySec = 0 } = options;
     const now = ctx.currentTime + delaySec;
 
     // 1. Tight wood-mallet resonant body (20ms pitch drop)
@@ -401,7 +401,7 @@ class FeedbackEngine {
     bp.Q.setValueAtTime(5.2, now);
 
     const clickEnv = ctx.createGain();
-    clickEnv.gain.setValueAtTime(gainPeak * 0.9, now);
+    clickEnv.gain.setValueAtTime(gainPeak * 0.95, now);
     clickEnv.gain.exponentialRampToValueAtTime(0.0001, now + 0.013);
 
     clickSrc.connect(bp);
@@ -426,15 +426,15 @@ class FeedbackEngine {
   /** Crisp tactile pop when tapping UI controls */
   onTap(soundEnabled: boolean) {
     if (!soundEnabled) return;
-    this.playStopwatchTick({ pitchScale: 0.92, gainPeak: 0.12 });
+    this.playStopwatchTick({ pitchScale: 0.92, gainPeak: 0.16 });
   }
 
   /** Sparkling 2-note celesta chime when picking a topic & difficulty */
   onSelectTopic(soundEnabled: boolean, vibrationEnabled: boolean) {
     this.vibrate(22, vibrationEnabled);
     if (!soundEnabled) return;
-    this.playBellChime({ freq: 587.33, durationSec: 0.16, delaySec: 0, gainPeak: 0.2 });
-    this.playBellChime({ freq: 880, durationSec: 0.26, delaySec: 0.065, gainPeak: 0.25 });
+    this.playBellChime({ freq: 587.33, durationSec: 0.16, delaySec: 0, gainPeak: 0.28 });
+    this.playBellChime({ freq: 880, durationSec: 0.26, delaySec: 0.065, gainPeak: 0.35 });
   }
 
   /** Exciting TV Game-Show Opening Fanfare when starting a brand new match! */
@@ -443,9 +443,9 @@ class FeedbackEngine {
     if (!soundEnabled) return;
 
     // Punchy opening drum & clap hits
-    this.playPunchyKick(0, 0.38, 165, 42, 0.16);
-    this.playPunchyKick(0.36, 0.42, 175, 40, 0.2);
-    this.playSnappyClap(0.36, 0.24);
+    this.playPunchyKick(0, 0.44, 165, 42, 0.16);
+    this.playPunchyKick(0.36, 0.48, 175, 40, 0.2);
+    this.playSnappyClap(0.36, 0.3);
 
     // Rising game-show fanfare: G4 -> C5 -> E5 -> G5 -> Full C Major 9 Chord!
     const pickup = [
@@ -455,16 +455,16 @@ class FeedbackEngine {
       { f: 783.99, d: 0.27, dur: 0.11 },
     ];
     pickup.forEach((n) => {
-      this.playWarmBrass({ freq: n.f, durationSec: n.dur, delaySec: n.d, gainPeak: 0.18 });
-      this.playBellChime({ freq: n.f * 2, durationSec: 0.16, delaySec: n.d, gainPeak: 0.12 });
+      this.playWarmBrass({ freq: n.f, durationSec: n.dur, delaySec: n.d, gainPeak: 0.24 });
+      this.playBellChime({ freq: n.f * 2, durationSec: 0.16, delaySec: n.d, gainPeak: 0.18 });
     });
 
     // Big triumphant landing chord at 0.36s (C4 + E5 + G5 + D6)
-    this.playWarmBrass({ freq: 261.63, durationSec: 0.48, delaySec: 0.36, gainPeak: 0.22 });
-    this.playWarmBrass({ freq: 523.25, durationSec: 0.48, delaySec: 0.36, gainPeak: 0.2 });
-    this.playBellChime({ freq: 659.25, durationSec: 0.52, delaySec: 0.36, gainPeak: 0.2 });
-    this.playBellChime({ freq: 783.99, durationSec: 0.55, delaySec: 0.38, gainPeak: 0.22 });
-    this.playBellChime({ freq: 1174.66, durationSec: 0.62, delaySec: 0.41, gainPeak: 0.26 });
+    this.playWarmBrass({ freq: 261.63, durationSec: 0.48, delaySec: 0.36, gainPeak: 0.28 });
+    this.playWarmBrass({ freq: 523.25, durationSec: 0.48, delaySec: 0.36, gainPeak: 0.26 });
+    this.playBellChime({ freq: 659.25, durationSec: 0.52, delaySec: 0.36, gainPeak: 0.26 });
+    this.playBellChime({ freq: 783.99, durationSec: 0.55, delaySec: 0.38, gainPeak: 0.28 });
+    this.playBellChime({ freq: 1174.66, durationSec: 0.62, delaySec: 0.41, gainPeak: 0.32 });
   }
 
   /** Muted wooden double-knock when tapping a locked topic or golden card */
@@ -476,7 +476,7 @@ class FeedbackEngine {
       endFreq: 125,
       durationSec: 0.09,
       delaySec: 0,
-      gainPeak: 0.15,
+      gainPeak: 0.2,
       brightnessHz: 650,
       sendReverb: false,
     });
@@ -485,7 +485,7 @@ class FeedbackEngine {
       endFreq: 105,
       durationSec: 0.11,
       delaySec: 0.075,
-      gainPeak: 0.16,
+      gainPeak: 0.22,
       brightnessHz: 550,
       sendReverb: false,
     });
@@ -501,7 +501,7 @@ class FeedbackEngine {
         freq: f,
         durationSec: 0.3 + idx * 0.05,
         delaySec: idx * 0.045,
-        gainPeak: 0.16,
+        gainPeak: 0.22,
       });
     });
   }
@@ -514,19 +514,19 @@ class FeedbackEngine {
     if (!soundEnabled) return;
 
     // Two crisp rhythmic countdown pickups -> explosive GO bell + brass + kick!
-    this.playStopwatchTick({ pitchScale: 1.05, gainPeak: 0.24, delaySec: 0 });
-    this.playBellChime({ freq: 783.99, durationSec: 0.09, delaySec: 0, gainPeak: 0.18, sendReverb: false });
+    this.playStopwatchTick({ pitchScale: 1.05, gainPeak: 0.3, delaySec: 0 });
+    this.playBellChime({ freq: 783.99, durationSec: 0.09, delaySec: 0, gainPeak: 0.24, sendReverb: false });
 
-    this.playStopwatchTick({ pitchScale: 1.15, gainPeak: 0.26, delaySec: 0.105 });
-    this.playBellChime({ freq: 783.99, durationSec: 0.09, delaySec: 0.105, gainPeak: 0.2, sendReverb: false });
+    this.playStopwatchTick({ pitchScale: 1.15, gainPeak: 0.32, delaySec: 0.105 });
+    this.playBellChime({ freq: 783.99, durationSec: 0.09, delaySec: 0.105, gainPeak: 0.26, sendReverb: false });
 
     // GO! at 0.21s
-    this.playPunchyKick(0.21, 0.38, 170, 44, 0.16);
-    this.playSnappyClap(0.21, 0.2);
-    this.playWarmBrass({ freq: 523.25, durationSec: 0.32, delaySec: 0.21, gainPeak: 0.22, brightnessHz: 3000 });
-    this.playBellChime({ freq: 1046.5, durationSec: 0.42, delaySec: 0.21, gainPeak: 0.28 });
-    this.playBellChime({ freq: 1318.51, durationSec: 0.45, delaySec: 0.23, gainPeak: 0.24 });
-    this.playBellChime({ freq: 1567.98, durationSec: 0.48, delaySec: 0.25, gainPeak: 0.24 });
+    this.playPunchyKick(0.21, 0.44, 170, 44, 0.16);
+    this.playSnappyClap(0.21, 0.26);
+    this.playWarmBrass({ freq: 523.25, durationSec: 0.32, delaySec: 0.21, gainPeak: 0.28, brightnessHz: 3000 });
+    this.playBellChime({ freq: 1046.5, durationSec: 0.42, delaySec: 0.21, gainPeak: 0.35 });
+    this.playBellChime({ freq: 1318.51, durationSec: 0.45, delaySec: 0.23, gainPeak: 0.3 });
+    this.playBellChime({ freq: 1567.98, durationSec: 0.48, delaySec: 0.25, gainPeak: 0.3 });
   }
 
   /**
@@ -565,7 +565,7 @@ class FeedbackEngine {
       const isEven = basis % 2 === 0;
       this.playStopwatchTick({
         pitchScale: isEven ? 1.04 : 0.88,
-        gainPeak: 0.16,
+        gainPeak: 0.24,
       });
       return;
     }
@@ -578,14 +578,14 @@ class FeedbackEngine {
       const progress10to5 = Math.max(0, Math.min(1, (10_000 - remMs) / 5_000));
       this.playStopwatchTick({
         pitchScale: (isDownbeat ? 1.08 : 1.18) + progress10to5 * 0.1,
-        gainPeak: isDownbeat ? 0.25 : 0.2,
+        gainPeak: isDownbeat ? 0.32 : 0.26,
       });
       if (isDownbeat) {
-        this.playPunchyKick(0, 0.18, 110, 42, 0.11);
+        this.playPunchyKick(0, 0.24, 110, 42, 0.11);
         this.playBellChime({
           freq: 440 + progress10to5 * 83.25,
           durationSec: 0.12,
-          gainPeak: 0.09,
+          gainPeak: 0.14,
           sendReverb: false,
         });
       }
@@ -597,15 +597,15 @@ class FeedbackEngine {
       const progress5to2 = Math.max(0, Math.min(1, (5_000 - remMs) / 2_500));
       this.playStopwatchTick({
         pitchScale: 1.24 + progress5to2 * 0.2,
-        gainPeak: isDownbeat ? 0.29 : 0.23,
+        gainPeak: isDownbeat ? 0.38 : 0.3,
       });
       if (isDownbeat) {
         this.vibrate(18, vibrationEnabled);
-        this.playPunchyKick(0, 0.24, 125, 45, 0.11);
+        this.playPunchyKick(0, 0.3, 125, 45, 0.11);
         this.playBellChime({
           freq: 587.33 + progress5to2 * 196,
           durationSec: 0.13,
-          gainPeak: 0.14,
+          gainPeak: 0.2,
           sendReverb: false,
         });
       }
@@ -616,15 +616,15 @@ class FeedbackEngine {
     const progress2to0 = Math.max(0, Math.min(1, (2_500 - remMs) / 2_500));
     this.playStopwatchTick({
       pitchScale: 1.46 + progress2to0 * 0.34,
-      gainPeak: isDownbeat ? 0.32 : 0.26,
+      gainPeak: isDownbeat ? 0.42 : 0.34,
     });
     if (isDownbeat) {
       this.vibrate(25, vibrationEnabled);
-      this.playPunchyKick(0, 0.28, 140, 48, 0.1);
+      this.playPunchyKick(0, 0.34, 140, 48, 0.1);
       this.playBellChime({
         freq: 880 + progress2to0 * 294,
         durationSec: 0.11,
-        gainPeak: 0.16,
+        gainPeak: 0.22,
         sendReverb: false,
       });
     }
@@ -675,8 +675,8 @@ class FeedbackEngine {
     }
 
     // Standard Correct Word Solved: Crisp rhythm + Lush D Major 9 celebration!
-    this.playPunchyKick(0, 0.34, 160, 44, 0.15);
-    this.playSnappyClap(0.17, 0.22);
+    this.playPunchyKick(0, 0.42, 160, 44, 0.15);
+    this.playSnappyClap(0.17, 0.28);
 
     const arpeggio = [
       { f: 587.33, d: 0.0, dur: 0.18 },   // D5
@@ -685,13 +685,13 @@ class FeedbackEngine {
       { f: 1174.66, d: 0.18, dur: 0.52 }, // D6
     ];
     arpeggio.forEach((n) => {
-      this.playBellChime({ freq: n.f, durationSec: n.dur, delaySec: n.d, gainPeak: 0.27 });
+      this.playBellChime({ freq: n.f, durationSec: n.dur, delaySec: n.d, gainPeak: 0.35 });
     });
 
     // Warm harmonic chord bed at 0.18s (D4 + F#5 + E6 Major 9th!)
-    this.playWarmBrass({ freq: 293.66, durationSec: 0.42, delaySec: 0.18, gainPeak: 0.2 });
-    this.playWarmBrass({ freq: 587.33, durationSec: 0.42, delaySec: 0.18, gainPeak: 0.18 });
-    this.playBellChime({ freq: 1318.51, durationSec: 0.48, delaySec: 0.21, gainPeak: 0.18 });
+    this.playWarmBrass({ freq: 293.66, durationSec: 0.42, delaySec: 0.18, gainPeak: 0.26 });
+    this.playWarmBrass({ freq: 587.33, durationSec: 0.42, delaySec: 0.18, gainPeak: 0.24 });
+    this.playBellChime({ freq: 1318.51, durationSec: 0.48, delaySec: 0.21, gainPeak: 0.24 });
 
     // Extra dazzling harp sparkle when earning Speed Bonus!
     if (hasSpeedBonus) {
@@ -701,7 +701,7 @@ class FeedbackEngine {
           freq: f,
           durationSec: 0.28,
           delaySec: 0.28 + idx * 0.048,
-          gainPeak: 0.2,
+          gainPeak: 0.26,
         });
       });
     }
@@ -717,16 +717,16 @@ class FeedbackEngine {
       endFreq: 293.66,
       durationSec: 0.14,
       delaySec: 0,
-      gainPeak: 0.22,
-      brightnessHz: 1200,
+      gainPeak: 0.3,
+      brightnessHz: 1300,
     });
     this.playWarmBrass({
       freq: 233.08, // Bb3
       endFreq: 196.0,
       durationSec: 0.28,
       delaySec: 0.14,
-      gainPeak: 0.26,
-      brightnessHz: 950,
+      gainPeak: 0.34,
+      brightnessHz: 1100,
     });
   }
 
@@ -734,9 +734,9 @@ class FeedbackEngine {
   onSwap(soundEnabled: boolean, vibrationEnabled: boolean) {
     this.vibrate(38, vibrationEnabled);
     if (!soundEnabled) return;
-    this.playStopwatchTick({ pitchScale: 1.15, gainPeak: 0.18, delaySec: 0 });
-    this.playBellChime({ freq: 783.99, durationSec: 0.13, delaySec: 0, gainPeak: 0.2, sendReverb: false });
-    this.playBellChime({ freq: 523.25, durationSec: 0.2, delaySec: 0.075, gainPeak: 0.22 });
+    this.playStopwatchTick({ pitchScale: 1.15, gainPeak: 0.24, delaySec: 0 });
+    this.playBellChime({ freq: 783.99, durationSec: 0.13, delaySec: 0, gainPeak: 0.26, sendReverb: false });
+    this.playBellChime({ freq: 523.25, durationSec: 0.2, delaySec: 0.075, gainPeak: 0.28 });
   }
 
   /** Dramatic Stadium Time's-Up Horn & Gong Impact when 00:00 expires! */
@@ -744,39 +744,39 @@ class FeedbackEngine {
     this.vibrate([190, 65, 250], vibrationEnabled);
     if (!soundEnabled) return;
 
-    this.playPunchyKick(0, 0.45, 160, 36, 0.28);
-    this.playPunchyKick(0.38, 0.45, 145, 34, 0.34);
+    this.playPunchyKick(0, 0.52, 160, 36, 0.28);
+    this.playPunchyKick(0.38, 0.52, 145, 34, 0.34);
 
     // Classic 3-step game-show horn: G4 -> Eb4 -> C4 (rich unison brass)
     this.playWarmBrass({
       freq: 392.0,
       durationSec: 0.2,
       delaySec: 0,
-      gainPeak: 0.26,
-      brightnessHz: 2100,
+      gainPeak: 0.34,
+      brightnessHz: 2300,
     });
     this.playWarmBrass({
       freq: 311.13,
       durationSec: 0.2,
       delaySec: 0.19,
-      gainPeak: 0.26,
-      brightnessHz: 1900,
+      gainPeak: 0.34,
+      brightnessHz: 2100,
     });
     this.playWarmBrass({
       freq: 261.63,
       endFreq: 220.0,
       durationSec: 0.62,
       delaySec: 0.38,
-      gainPeak: 0.32,
-      brightnessHz: 1700,
+      gainPeak: 0.4,
+      brightnessHz: 1900,
     });
     this.playWarmBrass({
       freq: 130.81,
       endFreq: 110.0,
       durationSec: 0.65,
       delaySec: 0.38,
-      gainPeak: 0.28,
-      brightnessHz: 950,
+      gainPeak: 0.35,
+      brightnessHz: 1100,
     });
   }
 

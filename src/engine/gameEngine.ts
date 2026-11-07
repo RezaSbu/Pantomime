@@ -540,11 +540,18 @@ export function resumeTurnPlayTimer(match: ActiveMatchState, now = Date.now()): 
   };
 }
 
+export const MAX_FOULS_PER_WORD = 3;
+
 export function recordWrongGuessInTurn(
   match: ActiveMatchState,
   now = Date.now()
 ): ActiveMatchState {
-  if (match.phase !== 'PLAYING' || !match.currentSlot || match.currentSlot.isScored) {
+  if (
+    match.phase !== 'PLAYING' ||
+    !match.currentSlot ||
+    match.currentSlot.isScored ||
+    match.currentSlot.wrongGuessesInSlot >= MAX_FOULS_PER_WORD
+  ) {
     return match;
   }
   return {

@@ -355,14 +355,28 @@ export const ActiveGamePage: React.FC = () => {
   };
 
   const handleFoulClick = () => {
-    const nextFoulCount = (slot?.wrongGuessesInSlot ?? 0) + 1;
+    const currentFouls = slot?.wrongGuessesInSlot ?? 0;
+    if (currentFouls >= 3) {
+      showToast('سقف خطا پر شده است (حداکثر ۳ خطا برای هر کلمه)');
+      return;
+    }
+    const nextFoulCount = currentFouls + 1;
     wrongGuess();
-    showToast(
-      `خطا ثبت شد (${formatNum(nextFoulCount, p)} خطا = −${formatNum(
-        nextFoulCount * settings.foulPenalty,
-        p
-      )} امتیاز)`
-    );
+    if (nextFoulCount >= 3) {
+      showToast(
+        `خطای سوم ثبت شد (−${formatNum(
+          nextFoulCount * settings.foulPenalty,
+          p
+        )} امتیاز) · سقف خطای این کلمه تکمیل شد!`
+      );
+    } else {
+      showToast(
+        `خطای ${formatNum(nextFoulCount, p)} از ۳ ثبت شد (−${formatNum(
+          nextFoulCount * settings.foulPenalty,
+          p
+        )} امتیاز)`
+      );
+    }
   };
 
   const getPointsForCatDiff = (cat: CategoryItem, diff: Difficulty) =>
@@ -1160,14 +1174,27 @@ export const ActiveGamePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleFoulClick}
-                      disabled={activeMatch.phase !== 'PLAYING' || slot.isScored}
-                      className="col-span-3 min-h-[46px] sm:min-h-[52px] inline-flex items-center justify-center gap-1 rounded-2xl border-2 border-amber-500/45 bg-amber-50/70 dark:bg-amber-950/25 hover:bg-amber-100/70 dark:hover:bg-amber-950/45 active:scale-[0.98] disabled:opacity-40 text-amber-800 dark:text-amber-300 px-2 py-2 text-sm sm:text-base font-black transition-all whitespace-nowrap tabular-nums"
+                      disabled={
+                        activeMatch.phase !== 'PLAYING' ||
+                        slot.isScored ||
+                        slot.wrongGuessesInSlot >= 3
+                      }
+                      title={
+                        slot.wrongGuessesInSlot >= 3
+                          ? 'حداکثر ۳ بار خطا در هر کلمه مجاز است'
+                          : undefined
+                      }
+                      className={`col-span-3 min-h-[46px] sm:min-h-[52px] inline-flex items-center justify-center gap-1 rounded-2xl border-2 transition-all whitespace-nowrap tabular-nums text-sm sm:text-base font-black ${
+                        slot.wrongGuessesInSlot >= 3
+                          ? 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'
+                          : 'border-amber-500/45 bg-amber-50/70 dark:bg-amber-950/25 hover:bg-amber-100/70 dark:hover:bg-amber-950/45 active:scale-[0.98] disabled:opacity-40 text-amber-800 dark:text-amber-300'
+                      }`}
                     >
                       <AlertTriangle className="w-4 h-4 shrink-0" />
                       <span>خطا</span>
                       {slot.wrongGuessesInSlot > 0 && (
                         <span className="text-xs font-extrabold">
-                          ({formatNum(slot.wrongGuessesInSlot, p)})
+                          ({formatNum(slot.wrongGuessesInSlot, p)}/{formatNum(3, p)})
                         </span>
                       )}
                     </button>
