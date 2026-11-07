@@ -58,19 +58,19 @@ export const RulesSheet: React.FC = () => {
             </p>
             <div className="divide-y divide-slate-200/70 dark:divide-slate-800 text-xs space-y-1.5">
               <div className="pt-1 flex justify-between gap-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200">موضوعات عادی — آسان</span>
-                <span>{formatNum(2, p)} امتیاز · تا {formatNum(12, p)}ث (+{formatNum(2, p)}) · تا {formatNum(24, p)}ث (+{formatNum(1, p)})</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">موضوعات عادی — آسان ({formatNum(35, p)} ثانیه)</span>
+                <span>{formatNum(2, p)} امتیاز · تا {formatNum(10, p)}ث (+{formatNum(2, p)}) · تا {formatNum(20, p)}ث (+{formatNum(1, p)})</span>
               </div>
               <div className="pt-1.5 flex justify-between gap-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200">موضوعات عادی — متوسط</span>
-                <span>{formatNum(4, p)} امتیاز · تا {formatNum(15, p)}ث (+{formatNum(3, p)}) · تا {formatNum(28, p)}ث (+{formatNum(2, p)}) · تا {formatNum(40, p)}ث (+{formatNum(1, p)})</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">موضوعات عادی — متوسط ({formatNum(70, p)} ثانیه)</span>
+                <span>{formatNum(4, p)} امتیاز · تا {formatNum(18, p)}ث (+{formatNum(3, p)}) · تا {formatNum(35, p)}ث (+{formatNum(2, p)}) · تا {formatNum(50, p)}ث (+{formatNum(1, p)})</span>
               </div>
               <div className="pt-1.5 flex justify-between gap-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200">موضوعات عادی — سخت</span>
-                <span>{formatNum(6, p)} امتیاز · تا {formatNum(20, p)}ث (+{formatNum(4, p)}) · تا {formatNum(35, p)}ث (+{formatNum(3, p)}) · تا {formatNum(50, p)}ث (+{formatNum(2, p)}) · تا {formatNum(65, p)}ث (+{formatNum(1, p)})</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">موضوعات عادی — سخت ({formatNum(110, p)} ثانیه)</span>
+                <span>{formatNum(6, p)} امتیاز · تا {formatNum(25, p)}ث (+{formatNum(4, p)}) · تا {formatNum(50, p)}ث (+{formatNum(2, p)}) · تا {formatNum(75, p)}ث (+{formatNum(1, p)})</span>
               </div>
               <div className="pt-1.5 flex justify-between gap-2 text-emerald-800 dark:text-emerald-300">
-                <span className="font-bold">ضرب‌المثل (آسان / متوسط / سخت)</span>
+                <span className="font-bold">ضرب‌المثل ({formatNum(80, p)} / {formatNum(100, p)} / {formatNum(135, p)} ثانیه)</span>
                 <span>{formatNum(5, p)} / {formatNum(8, p)} / {formatNum(10, p)} امتیاز + امتیاز تایم پله‌ای تا +{formatNum(5, p)}</span>
               </div>
             </div>
@@ -82,7 +82,7 @@ export const RulesSheet: React.FC = () => {
               <span>قانون موضوع طلایی {formatNum(30, p)} امتیازی (فقط دور آخر!)</span>
             </h3>
             <p className="text-xs text-slate-700 dark:text-slate-300">
-              موضوع طلایی فقط در <strong>آخرین دور مسابقه</strong> باز می‌شود ({formatNum(240, p)} ثانیه). امتیاز تایم آن نیز پله‌ای است: تا {formatNum(45, p)}ث (+{formatNum(10, p)})، تا {formatNum(80, p)}ث (+{formatNum(7, p)})، تا {formatNum(115, p)}ث (+{formatNum(5, p)}) و تا {formatNum(150, p)}ث (+{formatNum(3, p)}).
+              موضوع طلایی فقط در <strong>آخرین دور مسابقه</strong> باز می‌شود ({formatNum(210, p)} ثانیه = ۳.۵ دقیقه). امتیاز تایم پله‌ای: تا {formatNum(60, p)}ث (+{formatNum(10, p)})، تا {formatNum(110, p)}ث (+{formatNum(6, p)}) و تا {formatNum(155, p)}ث (+{formatNum(3, p)}).
             </p>
           </div>
 

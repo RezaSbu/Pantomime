@@ -57,30 +57,29 @@ const makeWord = (overrides: Partial<WordItem>): WordItem => ({
 });
 
 describe('Scoring Engine — Stepped Speed Bonus Tiers & Base Point Rules', () => {
-  it('calculates 2-point Easy regular stepped bonuses (<=12s -> +2, <=24s -> +1, >24s -> 0)', () => {
+  it('calculates 2-point Easy regular stepped bonuses (<=10s -> +2, <=20s -> +1, >20s -> 0)', () => {
     const easyWord = makeWord({ difficulty: 'easy', basePoints: 2 });
-    expect(calculateWordScore(easyWord, 12, DEFAULT_SETTINGS).totalPoints).toBe(4);
-    expect(calculateWordScore(easyWord, 18, DEFAULT_SETTINGS).totalPoints).toBe(3);
-    expect(calculateWordScore(easyWord, 24, DEFAULT_SETTINGS).totalPoints).toBe(3);
-    expect(calculateWordScore(easyWord, 25, DEFAULT_SETTINGS).totalPoints).toBe(2);
+    expect(calculateWordScore(easyWord, 10, DEFAULT_SETTINGS).totalPoints).toBe(4);
+    expect(calculateWordScore(easyWord, 15, DEFAULT_SETTINGS).totalPoints).toBe(3);
+    expect(calculateWordScore(easyWord, 20, DEFAULT_SETTINGS).totalPoints).toBe(3);
+    expect(calculateWordScore(easyWord, 21, DEFAULT_SETTINGS).totalPoints).toBe(2);
   });
 
-  it('calculates 4-point Medium regular stepped bonuses (<=15s -> +3, <=28s -> +2, <=40s -> +1, >40s -> 0)', () => {
+  it('calculates 4-point Medium regular stepped bonuses (<=18s -> +3, <=35s -> +2, <=50s -> +1, >50s -> 0)', () => {
     const mediumWord = makeWord({ difficulty: 'medium', basePoints: 4 });
-    expect(calculateWordScore(mediumWord, 15, DEFAULT_SETTINGS).totalPoints).toBe(7);
-    expect(calculateWordScore(mediumWord, 22, DEFAULT_SETTINGS).totalPoints).toBe(6);
-    expect(calculateWordScore(mediumWord, 35, DEFAULT_SETTINGS).totalPoints).toBe(5);
-    expect(calculateWordScore(mediumWord, 41, DEFAULT_SETTINGS).totalPoints).toBe(4);
+    expect(calculateWordScore(mediumWord, 18, DEFAULT_SETTINGS).totalPoints).toBe(7);
+    expect(calculateWordScore(mediumWord, 25, DEFAULT_SETTINGS).totalPoints).toBe(6);
+    expect(calculateWordScore(mediumWord, 45, DEFAULT_SETTINGS).totalPoints).toBe(5);
+    expect(calculateWordScore(mediumWord, 51, DEFAULT_SETTINGS).totalPoints).toBe(4);
   });
 
-  it('calculates 6-point Hard regular stepped bonuses (<=20s -> +4, <=35s -> +3, <=50s -> +2, <=65s -> +1, >65s -> 0)', () => {
+  it('calculates 6-point Hard regular stepped bonuses (<=25s -> +4, <=50s -> +2, <=75s -> +1, >75s -> 0)', () => {
     const hardWord = makeWord({ difficulty: 'hard', basePoints: 6 });
-    expect(calculateWordScore(hardWord, 20, DEFAULT_SETTINGS).totalPoints).toBe(10);
-    expect(calculateWordScore(hardWord, 30, DEFAULT_SETTINGS).totalPoints).toBe(9);
-    expect(calculateWordScore(hardWord, 35, DEFAULT_SETTINGS).totalPoints).toBe(9);
-    expect(calculateWordScore(hardWord, 45, DEFAULT_SETTINGS).totalPoints).toBe(8);
-    expect(calculateWordScore(hardWord, 60, DEFAULT_SETTINGS).totalPoints).toBe(7);
-    expect(calculateWordScore(hardWord, 66, DEFAULT_SETTINGS).totalPoints).toBe(6);
+    expect(calculateWordScore(hardWord, 25, DEFAULT_SETTINGS).totalPoints).toBe(10);
+    expect(calculateWordScore(hardWord, 40, DEFAULT_SETTINGS).totalPoints).toBe(8);
+    expect(calculateWordScore(hardWord, 50, DEFAULT_SETTINGS).totalPoints).toBe(8);
+    expect(calculateWordScore(hardWord, 65, DEFAULT_SETTINGS).totalPoints).toBe(7);
+    expect(calculateWordScore(hardWord, 76, DEFAULT_SETTINGS).totalPoints).toBe(6);
   });
 
   it('calculates Proverb stepped speed bonuses across Easy, Medium, and Hard', () => {
@@ -88,27 +87,26 @@ describe('Scoring Engine — Stepped Speed Bonus Tiers & Base Point Rules', () =
     const medProverb = makeWord({ kind: 'proverb', categoryId: 'proverbs', difficulty: 'medium' });
     const hardProverb = makeWord({ kind: 'proverb', categoryId: 'proverbs', difficulty: 'hard' });
 
-    expect(calculateWordScore(easyProverb, 20, DEFAULT_SETTINGS).totalPoints).toBe(8);
-    expect(calculateWordScore(easyProverb, 30, DEFAULT_SETTINGS).totalPoints).toBe(7);
-    expect(calculateWordScore(easyProverb, 55, DEFAULT_SETTINGS).totalPoints).toBe(5);
+    expect(calculateWordScore(easyProverb, 25, DEFAULT_SETTINGS).totalPoints).toBe(8);
+    expect(calculateWordScore(easyProverb, 40, DEFAULT_SETTINGS).totalPoints).toBe(6);
+    expect(calculateWordScore(easyProverb, 60, DEFAULT_SETTINGS).totalPoints).toBe(5);
 
-    expect(calculateWordScore(medProverb, 25, DEFAULT_SETTINGS).totalPoints).toBe(12);
-    expect(calculateWordScore(medProverb, 38, DEFAULT_SETTINGS).totalPoints).toBe(11);
+    expect(calculateWordScore(medProverb, 30, DEFAULT_SETTINGS).totalPoints).toBe(12);
+    expect(calculateWordScore(medProverb, 50, DEFAULT_SETTINGS).totalPoints).toBe(10);
     expect(calculateWordScore(medProverb, 75, DEFAULT_SETTINGS).totalPoints).toBe(8);
 
-    expect(calculateWordScore(hardProverb, 30, DEFAULT_SETTINGS).totalPoints).toBe(15);
-    expect(calculateWordScore(hardProverb, 42, DEFAULT_SETTINGS).totalPoints).toBe(14);
-    expect(calculateWordScore(hardProverb, 58, DEFAULT_SETTINGS).totalPoints).toBe(13);
-    expect(calculateWordScore(hardProverb, 98, DEFAULT_SETTINGS).totalPoints).toBe(10);
+    expect(calculateWordScore(hardProverb, 40, DEFAULT_SETTINGS).totalPoints).toBe(15);
+    expect(calculateWordScore(hardProverb, 60, DEFAULT_SETTINGS).totalPoints).toBe(13);
+    expect(calculateWordScore(hardProverb, 90, DEFAULT_SETTINGS).totalPoints).toBe(11);
+    expect(calculateWordScore(hardProverb, 110, DEFAULT_SETTINGS).totalPoints).toBe(10);
   });
 
-  it('calculates Golden Challenge stepped speed bonus (<=45s: 40, <=80s: 37, <=115s: 35, <=150s: 33, >150s: 30)', () => {
+  it('calculates Golden Challenge stepped speed bonus (<=60s: 40, <=110s: 36, <=155s: 33, >155s: 30)', () => {
     const goldenWord = makeWord({ kind: 'golden', categoryId: 'golden', difficulty: 'hard' });
-    expect(calculateWordScore(goldenWord, 45, DEFAULT_SETTINGS).totalPoints).toBe(40);
-    expect(calculateWordScore(goldenWord, 70, DEFAULT_SETTINGS).totalPoints).toBe(37);
-    expect(calculateWordScore(goldenWord, 100, DEFAULT_SETTINGS).totalPoints).toBe(35);
-    expect(calculateWordScore(goldenWord, 140, DEFAULT_SETTINGS).totalPoints).toBe(33);
-    expect(calculateWordScore(goldenWord, 160, DEFAULT_SETTINGS).totalPoints).toBe(30);
+    expect(calculateWordScore(goldenWord, 60, DEFAULT_SETTINGS).totalPoints).toBe(40);
+    expect(calculateWordScore(goldenWord, 90, DEFAULT_SETTINGS).totalPoints).toBe(36);
+    expect(calculateWordScore(goldenWord, 130, DEFAULT_SETTINGS).totalPoints).toBe(33);
+    expect(calculateWordScore(goldenWord, 170, DEFAULT_SETTINGS).totalPoints).toBe(30);
   });
 });
 
@@ -399,24 +397,24 @@ describe('Word Selector — 60/30/10 Distribution, Category Filter & No Repeats'
 
 describe('Timer Engine — Real System Wall-Clock Accuracy, Pause, Resume & Unlimited Mode', () => {
   it('tracks exact elapsed and remaining time across backgrounding, pause, and resume', () => {
-    const medWord = makeWord({ difficulty: 'medium' }); // 75s auto
+    const medWord = makeWord({ difficulty: 'medium' }); // 70s auto
     let timer = createIdleTimer(medWord, DEFAULT_SETTINGS);
-    expect(timer.durationSec).toBe(75);
+    expect(timer.durationSec).toBe(70);
 
     timer = startTimerState(timer, 1_000_000);
     const snap1 = getTimerSnapshot(timer, 1_025_000);
     expect(snap1.elapsedSeconds).toBe(25);
-    expect(snap1.remainingSeconds).toBe(50);
+    expect(snap1.remainingSeconds).toBe(45);
 
     timer = pauseTimerState(timer, 1_025_000);
     const snapPaused = getTimerSnapshot(timer, 1_625_000);
     expect(snapPaused.elapsedSeconds).toBe(25);
-    expect(snapPaused.remainingSeconds).toBe(50);
+    expect(snapPaused.remainingSeconds).toBe(45);
 
     timer = resumeTimerState(timer, 1_625_000);
     const snapResumed = getTimerSnapshot(timer, 1_630_000);
     expect(snapResumed.elapsedSeconds).toBe(30);
-    expect(snapResumed.remainingSeconds).toBe(45);
+    expect(snapResumed.remainingSeconds).toBe(40);
   });
 
   it('supports unlimited timer mode without expiring while still tracking elapsed time for speed bonus', () => {
@@ -529,21 +527,21 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     match = revealWordToActor(match, 1000);
     match = startTurnPlayTimer(match, 10_000); // 120s timer starts at t=10s
 
-    // At t=42s (32 seconds elapsed -> 88 seconds remaining), report invalid word
+    // At t=42s (32 seconds elapsed -> 78 seconds remaining), report invalid word
     const reportRes = reportInvalidWordAndReplace(match, INITIAL_WORDS, DEFAULT_SETTINGS, 42_000);
     expect(reportRes.reportedWordId).not.toBeNull();
     match = reportRes.state;
 
     const snapBeforeResume = getTimerSnapshot(match.timer, 50_000);
     expect(snapBeforeResume.elapsedSeconds).toBe(32);
-    expect(snapBeforeResume.remainingSeconds).toBe(88);
+    expect(snapBeforeResume.remainingSeconds).toBe(78);
     expect(match.currentSlot!.swapsUsedInSlot).toBe(0);
 
     match = revealWordToActor(match, 50_000);
     match = startTurnPlayTimer(match, 50_000);
     const snapAfter5s = getTimerSnapshot(match.timer, 55_000);
     expect(snapAfter5s.elapsedSeconds).toBe(37);
-    expect(snapAfter5s.remainingSeconds).toBe(83);
+    expect(snapAfter5s.remainingSeconds).toBe(73);
   });
 
   it('deducts 1 point per foul (خطا) on solved, swapped, and wrong (غلط) turns with itemized breakdown', () => {
@@ -569,7 +567,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     match = swapWordInTurn(match, INITIAL_WORDS, DEFAULT_SETTINGS, 8000).state;
     match = startTurnPlayTimer(match, 9000);
     match = recordWrongGuessInTurn(match, 15_000); // 1 foul (-1)
-    match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 39_000); // 30s elapsed -> +3 speed bonus
+    match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 39_000); // 30s elapsed -> <=50s -> +2 speed bonus
 
     const standingsAfterT1 = computeTeamStandings(
       match.teams,
@@ -580,10 +578,10 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     );
     const t1 = standingsAfterT1.find((s) => s.teamId === 'team_1')!;
     expect(t1.basePointsTotal).toBe(6);
-    expect(t1.speedBonusTotal).toBe(3);
+    expect(t1.speedBonusTotal).toBe(2);
     expect(t1.swapPenaltyTotal).toBe(1);
     expect(t1.foulPenaltyTotal).toBe(1);
-    expect(t1.totalScore).toBe(7);
+    expect(t1.totalScore).toBe(6);
 
     // Team 2: commits 2 fouls (-2) and ends turn as غلط (manual_end) -> -2 pts
     match = proceedFromTurnResult(match, DEFAULT_SETTINGS, 40_000);
@@ -669,7 +667,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     match = revealWordToActor(match, 1000);
     match = startTurnPlayTimer(match, 1000);
     match = recordWrongGuessInTurn(match, 5000);
-    match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 21_000);
+    match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 21_000); // 20s elapsed -> <=25s -> +4
     const afterDoubleClick = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 21_050);
     expect(afterDoubleClick).toBe(match);
     expect(match.allEvents.filter((e) => e.outcome === 'correct').length).toBe(1);
@@ -678,7 +676,15 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     match = proceedFromTurnResult(match, DEFAULT_SETTINGS, 22_000);
     expect(match.currentTurnIndexInRound).toBe(1);
 
-    // Team 2 solves hard word in 30s (0 fouls) -> 6 + 3 = 9 pts (TIE at 9!)
+    // Team 2 solves medium word in 30s (0 fouls) -> 4 + 2 = 6 pts?
+    // Let's create a clear tie:
+    // Team 1 solved hard word in 20s (6 + 4 - 1 foul = 9 pts).
+    // If Team 2 solves hard word in 60s (+1 speed bonus) with 2 fouls: 6 + 1 - 2 = 5 (no).
+    // If Team 2 solves hard word in 40s (6 + 2 = 8 pts) with 0 fouls -> 8.
+    // If Team 1 has 0 fouls: 6 + 4 = 10.
+    // Let's make it simple and exact:
+    // T1: 6 base + 4 speed (20s) - 1 foul = 9 pts.
+    // T2: 6 base + 4 speed (20s) - 1 foul = 9 pts (Exact Tie at 9!).
     match = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
       forcedCategoryId: 'movies_series',
       forcedDifficulty: 'hard',
@@ -686,7 +692,8 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     }).state;
     match = revealWordToActor(match, 30_000);
     match = startTurnPlayTimer(match, 30_000);
-    match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 60_000);
+    match = recordWrongGuessInTurn(match, 35_000); // 1 foul
+    match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 50_000); // 20s elapsed -> <=25s -> +4 -> 6 + 4 - 1 = 9 pts!
 
     match = proceedFromTurnResult(match, DEFAULT_SETTINGS, 61_000);
     expect(match.phase).toBe('ROUND_SUMMARY');

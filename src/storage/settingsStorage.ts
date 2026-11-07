@@ -1,21 +1,21 @@
 import { AppSettings, Difficulty, SpeedBonusRule } from '../types/game';
 
-const SETTINGS_STORAGE_KEY = 'adabazi_settings_v2';
+const SETTINGS_STORAGE_KEY = 'adabazi_settings_v3';
 const LAST_TEAMS_STORAGE_KEY = 'adabazi_last_teams_v1';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   timerMode: 'auto',
   regularTimeSec: {
-    easy: 45,
-    medium: 75,
-    hard: 120,
+    easy: 35,
+    medium: 70,
+    hard: 110,
   },
   proverbTimeSec: {
-    easy: 90,
-    medium: 120,
-    hard: 150,
+    easy: 80,
+    medium: 100,
+    hard: 135,
   },
-  goldenTimeSec: 240,
+  goldenTimeSec: 210,
   regularBasePoints: {
     easy: 2,
     medium: 4,
@@ -29,46 +29,39 @@ export const DEFAULT_SETTINGS: AppSettings = {
   goldenBasePoints: 30,
   regularSpeedBonus: {
     easy: [
-      { thresholdSec: 12, bonus: 2 },
-      { thresholdSec: 24, bonus: 1 },
+      { thresholdSec: 10, bonus: 2 },
+      { thresholdSec: 20, bonus: 1 },
     ],
     medium: [
-      { thresholdSec: 15, bonus: 3 },
-      { thresholdSec: 28, bonus: 2 },
-      { thresholdSec: 40, bonus: 1 },
+      { thresholdSec: 18, bonus: 3 },
+      { thresholdSec: 35, bonus: 2 },
+      { thresholdSec: 50, bonus: 1 },
     ],
     hard: [
-      { thresholdSec: 20, bonus: 4 },
-      { thresholdSec: 35, bonus: 3 },
+      { thresholdSec: 25, bonus: 4 },
       { thresholdSec: 50, bonus: 2 },
-      { thresholdSec: 65, bonus: 1 },
+      { thresholdSec: 75, bonus: 1 },
     ],
   },
   proverbSpeedBonus: {
     easy: [
-      { thresholdSec: 20, bonus: 3 },
-      { thresholdSec: 35, bonus: 2 },
+      { thresholdSec: 25, bonus: 3 },
       { thresholdSec: 50, bonus: 1 },
     ],
     medium: [
-      { thresholdSec: 25, bonus: 4 },
-      { thresholdSec: 40, bonus: 3 },
-      { thresholdSec: 55, bonus: 2 },
-      { thresholdSec: 70, bonus: 1 },
+      { thresholdSec: 30, bonus: 4 },
+      { thresholdSec: 60, bonus: 2 },
     ],
     hard: [
-      { thresholdSec: 30, bonus: 5 },
-      { thresholdSec: 45, bonus: 4 },
-      { thresholdSec: 60, bonus: 3 },
-      { thresholdSec: 80, bonus: 2 },
-      { thresholdSec: 95, bonus: 1 },
+      { thresholdSec: 40, bonus: 5 },
+      { thresholdSec: 75, bonus: 3 },
+      { thresholdSec: 100, bonus: 1 },
     ],
   },
   goldenSpeedBonusTiers: [
-    { thresholdSec: 45, bonus: 10 },
-    { thresholdSec: 80, bonus: 7 },
-    { thresholdSec: 115, bonus: 5 },
-    { thresholdSec: 150, bonus: 3 },
+    { thresholdSec: 60, bonus: 10 },
+    { thresholdSec: 110, bonus: 6 },
+    { thresholdSec: 155, bonus: 3 },
   ],
   swapPenalty: 1,
   foulPenalty: 1,
@@ -116,32 +109,67 @@ function normalizeTierRecord(
 export function loadSettings(): AppSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
   try {
-    const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    // Check v3 key first, then fallback to v2 for seamless upgrade
+    let raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    let isLegacy = false;
+    if (!raw) {
+      raw = window.localStorage.getItem('adabazi_settings_v2');
+      isLegacy = true;
+    }
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    return {
+
+    // If legacy v2 or obsolete timing detected, adopt the new optimized defaults
+    const regTimeCandidate = parsed.regularTimeSec ?? DEFAULT_SETTINGS.regularTimeSec;
+    const isOldRegularTimes =
+      regTimeCandidate.easy === 45 ||
+      regTimeCandidate.medium === 75 ||
+      regTimeCandidate.hard === 120;
+
+    const prvTimeCandidate = parsed.proverbTimeSec ?? DEFAULT_SETTINGS.proverbTimeSec;
+    const isOldProverbTimes =
+      prvTimeCandidate.easy === 90 ||
+      prvTimeCandidate.medium === 120 ||
+      prvTimeCandidate.hard === 150;
+
+    const isOldGoldenTime = parsed.goldenTimeSec === 240;
+
+    const upgraded: AppSettings = {
       ...DEFAULT_SETTINGS,
       ...parsed,
-      regularTimeSec: { ...DEFAULT_SETTINGS.regularTimeSec, ...parsed.regularTimeSec },
-      proverbTimeSec: { ...DEFAULT_SETTINGS.proverbTimeSec, ...parsed.proverbTimeSec },
+      regularTimeSec: isOldRegularTimes
+        ? DEFAULT_SETTINGS.regularTimeSec
+        : { ...DEFAULT_SETTINGS.regularTimeSec, ...parsed.regularTimeSec },
+      proverbTimeSec: isOldProverbTimes
+        ? DEFAULT_SETTINGS.proverbTimeSec
+        : { ...DEFAULT_SETTINGS.proverbTimeSec, ...parsed.proverbTimeSec },
+      goldenTimeSec: isOldGoldenTime ? DEFAULT_SETTINGS.goldenTimeSec : (parsed.goldenTimeSec ?? DEFAULT_SETTINGS.goldenTimeSec),
       regularBasePoints: { ...DEFAULT_SETTINGS.regularBasePoints, ...parsed.regularBasePoints },
       proverbBasePoints: { ...DEFAULT_SETTINGS.proverbBasePoints, ...parsed.proverbBasePoints },
-      regularSpeedBonus: normalizeTierRecord(
-        DEFAULT_SETTINGS.regularSpeedBonus,
-        parsed.regularSpeedBonus
-      ),
-      proverbSpeedBonus: normalizeTierRecord(
-        DEFAULT_SETTINGS.proverbSpeedBonus,
-        parsed.proverbSpeedBonus
-      ),
-      goldenSpeedBonusTiers:
-        Array.isArray(parsed.goldenSpeedBonusTiers) && parsed.goldenSpeedBonusTiers.length > 0
-          ? parsed.goldenSpeedBonusTiers
-          : DEFAULT_SETTINGS.goldenSpeedBonusTiers,
+      regularSpeedBonus: isOldRegularTimes || isLegacy
+        ? DEFAULT_SETTINGS.regularSpeedBonus
+        : normalizeTierRecord(DEFAULT_SETTINGS.regularSpeedBonus, parsed.regularSpeedBonus),
+      proverbSpeedBonus: isOldProverbTimes || isLegacy
+        ? DEFAULT_SETTINGS.proverbSpeedBonus
+        : normalizeTierRecord(DEFAULT_SETTINGS.proverbSpeedBonus, parsed.proverbSpeedBonus),
+      goldenSpeedBonusTiers: isOldGoldenTime || isLegacy
+        ? DEFAULT_SETTINGS.goldenSpeedBonusTiers
+        : Array.isArray(parsed.goldenSpeedBonusTiers) && parsed.goldenSpeedBonusTiers.length > 0
+        ? parsed.goldenSpeedBonusTiers
+        : DEFAULT_SETTINGS.goldenSpeedBonusTiers,
       foulPenalty:
         typeof parsed.foulPenalty === 'number' ? parsed.foulPenalty : DEFAULT_SETTINGS.foulPenalty,
       difficultyWeights: { ...DEFAULT_SETTINGS.difficultyWeights, ...parsed.difficultyWeights },
     };
+
+    if (isLegacy) {
+      saveSettings(upgraded);
+      try {
+        window.localStorage.removeItem('adabazi_settings_v2');
+      } catch {}
+    }
+
+    return upgraded;
   } catch {
     return DEFAULT_SETTINGS;
   }

@@ -20,18 +20,18 @@ const REGULAR_META: Record<
   Difficulty,
   { basePoints: number; defaultTimeSec: number; speedBonusThresholdSec: number; speedBonusPoints: number }
 > = {
-  easy: { basePoints: 2, defaultTimeSec: 45, speedBonusThresholdSec: 15, speedBonusPoints: 2 },
-  medium: { basePoints: 4, defaultTimeSec: 75, speedBonusThresholdSec: 30, speedBonusPoints: 3 },
-  hard: { basePoints: 6, defaultTimeSec: 120, speedBonusThresholdSec: 45, speedBonusPoints: 4 },
+  easy: { basePoints: 2, defaultTimeSec: 35, speedBonusThresholdSec: 10, speedBonusPoints: 2 },
+  medium: { basePoints: 4, defaultTimeSec: 70, speedBonusThresholdSec: 18, speedBonusPoints: 3 },
+  hard: { basePoints: 6, defaultTimeSec: 110, speedBonusThresholdSec: 25, speedBonusPoints: 4 },
 };
 
 const PROVERB_META: Record<
   Difficulty,
   { basePoints: number; defaultTimeSec: number; speedBonusThresholdSec: number; speedBonusPoints: number }
 > = {
-  easy: { basePoints: 5, defaultTimeSec: 90, speedBonusThresholdSec: 20, speedBonusPoints: 2 },
-  medium: { basePoints: 8, defaultTimeSec: 120, speedBonusThresholdSec: 40, speedBonusPoints: 3 },
-  hard: { basePoints: 10, defaultTimeSec: 150, speedBonusThresholdSec: 60, speedBonusPoints: 5 },
+  easy: { basePoints: 5, defaultTimeSec: 80, speedBonusThresholdSec: 25, speedBonusPoints: 3 },
+  medium: { basePoints: 8, defaultTimeSec: 100, speedBonusThresholdSec: 30, speedBonusPoints: 4 },
+  hard: { basePoints: 10, defaultTimeSec: 135, speedBonusThresholdSec: 40, speedBonusPoints: 5 },
 };
 
 export function buildCategoryWords(
@@ -83,7 +83,7 @@ export function buildGoldenWords(entries: CompactWordInput[]): WordItem[] {
       difficulty: 'hard',
       kind: 'golden',
       basePoints: 30,
-      defaultTimeSec: 240,
+      defaultTimeSec: 210,
       speedBonusThresholdSec: 60,
       speedBonusPoints: 10,
       status: 'valid',
