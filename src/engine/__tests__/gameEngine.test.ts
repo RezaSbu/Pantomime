@@ -102,18 +102,18 @@ describe('Scoring Engine — Stepped Speed Bonus Tiers & Base Point Rules', () =
     expect(calculateWordScore(medProverb, 50, DEFAULT_SETTINGS).totalPoints).toBe(10);
     expect(calculateWordScore(medProverb, 75, DEFAULT_SETTINGS).totalPoints).toBe(8);
 
-    expect(calculateWordScore(hardProverb, 40, DEFAULT_SETTINGS).totalPoints).toBe(15);
+    expect(calculateWordScore(hardProverb, 35, DEFAULT_SETTINGS).totalPoints).toBe(15);
     expect(calculateWordScore(hardProverb, 60, DEFAULT_SETTINGS).totalPoints).toBe(13);
     expect(calculateWordScore(hardProverb, 90, DEFAULT_SETTINGS).totalPoints).toBe(11);
-    expect(calculateWordScore(hardProverb, 110, DEFAULT_SETTINGS).totalPoints).toBe(10);
+    expect(calculateWordScore(hardProverb, 100, DEFAULT_SETTINGS).totalPoints).toBe(10);
   });
 
-  it('calculates Golden Challenge stepped speed bonus (<=60s: 40, <=110s: 36, <=155s: 33, >155s: 30)', () => {
+  it('calculates Golden Challenge stepped speed bonus (<=45s: 40, <=90s: 36, <=130s: 33, >130s: 30)', () => {
     const goldenWord = makeWord({ kind: 'golden', categoryId: 'golden', difficulty: 'hard' });
-    expect(calculateWordScore(goldenWord, 60, DEFAULT_SETTINGS).totalPoints).toBe(40);
-    expect(calculateWordScore(goldenWord, 90, DEFAULT_SETTINGS).totalPoints).toBe(36);
-    expect(calculateWordScore(goldenWord, 130, DEFAULT_SETTINGS).totalPoints).toBe(33);
-    expect(calculateWordScore(goldenWord, 170, DEFAULT_SETTINGS).totalPoints).toBe(30);
+    expect(calculateWordScore(goldenWord, 45, DEFAULT_SETTINGS).totalPoints).toBe(40);
+    expect(calculateWordScore(goldenWord, 80, DEFAULT_SETTINGS).totalPoints).toBe(36);
+    expect(calculateWordScore(goldenWord, 120, DEFAULT_SETTINGS).totalPoints).toBe(33);
+    expect(calculateWordScore(goldenWord, 150, DEFAULT_SETTINGS).totalPoints).toBe(30);
   });
 });
 
@@ -823,19 +823,19 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
       match = revealWordToActor(turnRes.state);
       expect(isRisk20Eligible(match)).toBe(false);
 
-      // Select children category hard word: ineligible
+      // Select kids category hard word (6-pt): strictly ineligible
       match = cancelTurnSelectionBeforeReveal(match);
       turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'children',
+        forcedCategoryId: 'kids',
         forcedDifficulty: 'hard',
       });
       match = revealWordToActor(turnRes.state);
       expect(isRisk20Eligible(match)).toBe(false);
 
-      // Select proverb category hard word: ineligible
+      // Select proverbs category hard word (10-pt): strictly ineligible
       match = cancelTurnSelectionBeforeReveal(match);
       turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'proverb',
+        forcedCategoryId: 'proverbs',
         forcedDifficulty: 'hard',
       });
       match = revealWordToActor(turnRes.state);

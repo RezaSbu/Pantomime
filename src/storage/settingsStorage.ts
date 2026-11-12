@@ -1,6 +1,6 @@
 import { AppSettings, Difficulty, SpeedBonusRule } from '../types/game';
 
-const SETTINGS_STORAGE_KEY = 'adabazi_settings_v3';
+const SETTINGS_STORAGE_KEY = 'adabazi_settings_v4';
 const LAST_TEAMS_STORAGE_KEY = 'adabazi_last_teams_v1';
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -13,9 +13,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   proverbTimeSec: {
     easy: 80,
     medium: 100,
-    hard: 135,
+    hard: 120,
   },
-  goldenTimeSec: 210,
+  goldenTimeSec: 170,
   regularBasePoints: {
     easy: 2,
     medium: 4,
@@ -53,15 +53,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
       { thresholdSec: 60, bonus: 2 },
     ],
     hard: [
-      { thresholdSec: 40, bonus: 5 },
-      { thresholdSec: 75, bonus: 3 },
-      { thresholdSec: 100, bonus: 1 },
+      { thresholdSec: 35, bonus: 5 },
+      { thresholdSec: 65, bonus: 3 },
+      { thresholdSec: 90, bonus: 1 },
     ],
   },
   goldenSpeedBonusTiers: [
-    { thresholdSec: 60, bonus: 10 },
-    { thresholdSec: 110, bonus: 6 },
-    { thresholdSec: 155, bonus: 3 },
+    { thresholdSec: 45, bonus: 10 },
+    { thresholdSec: 90, bonus: 6 },
+    { thresholdSec: 130, bonus: 3 },
   ],
   swapPenalty: 1,
   foulPenalty: 1,
@@ -109,17 +109,17 @@ function normalizeTierRecord(
 export function loadSettings(): AppSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
   try {
-    // Check v3 key first, then fallback to v2 for seamless upgrade
+    // Check v4 key first, then fallback to v3/v2 for seamless upgrade
     let raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
     let isLegacy = false;
     if (!raw) {
-      raw = window.localStorage.getItem('adabazi_settings_v2');
+      raw = window.localStorage.getItem('adabazi_settings_v3') || window.localStorage.getItem('adabazi_settings_v2');
       isLegacy = true;
     }
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
 
-    // If legacy v2 or obsolete timing detected, adopt the new optimized defaults
+    // If legacy or obsolete timing detected, adopt the new optimized defaults
     const regTimeCandidate = parsed.regularTimeSec ?? DEFAULT_SETTINGS.regularTimeSec;
     const isOldRegularTimes =
       regTimeCandidate.easy === 45 ||
@@ -130,9 +130,10 @@ export function loadSettings(): AppSettings {
     const isOldProverbTimes =
       prvTimeCandidate.easy === 90 ||
       prvTimeCandidate.medium === 120 ||
+      prvTimeCandidate.hard === 135 ||
       prvTimeCandidate.hard === 150;
 
-    const isOldGoldenTime = parsed.goldenTimeSec === 240;
+    const isOldGoldenTime = parsed.goldenTimeSec === 210 || parsed.goldenTimeSec === 240;
 
     const upgraded: AppSettings = {
       ...DEFAULT_SETTINGS,

@@ -31,7 +31,7 @@ const PROVERB_META: Record<
 > = {
   easy: { basePoints: 5, defaultTimeSec: 80, speedBonusThresholdSec: 25, speedBonusPoints: 3 },
   medium: { basePoints: 8, defaultTimeSec: 100, speedBonusThresholdSec: 30, speedBonusPoints: 4 },
-  hard: { basePoints: 10, defaultTimeSec: 135, speedBonusThresholdSec: 40, speedBonusPoints: 5 },
+  hard: { basePoints: 10, defaultTimeSec: 120, speedBonusThresholdSec: 35, speedBonusPoints: 5 },
 };
 
 export function buildCategoryWords(
@@ -83,8 +83,8 @@ export function buildGoldenWords(entries: CompactWordInput[]): WordItem[] {
       difficulty: 'hard',
       kind: 'golden',
       basePoints: 30,
-      defaultTimeSec: 210,
-      speedBonusThresholdSec: 60,
+      defaultTimeSec: 170,
+      speedBonusThresholdSec: 45,
       speedBonusPoints: 10,
       status: 'valid',
       origin: normalizedEntry.origin ?? 'neutral',

@@ -242,7 +242,14 @@ export function isRisk20Eligible(match: ActiveMatchState): boolean {
   const word = slot.word;
   if (word.difficulty !== 'hard') return false;
   if (word.kind !== 'regular') return false;
-  if (word.categoryId === 'children' || word.categoryId === 'proverb') return false;
+  if (
+    word.categoryId === 'kids' ||
+    word.categoryId === 'children' ||
+    word.categoryId === 'proverbs' ||
+    word.categoryId === 'proverb'
+  ) {
+    return false;
+  }
   const team = getActiveTeam(match);
   if (!team) return false;
   return getRisk20Remaining(match, team.id) > 0;

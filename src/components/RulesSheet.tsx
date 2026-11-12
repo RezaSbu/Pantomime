@@ -70,7 +70,7 @@ export const RulesSheet: React.FC = () => {
                 <span>{formatNum(6, p)} امتیاز · تا {formatNum(25, p)}ث (+{formatNum(4, p)}) · تا {formatNum(50, p)}ث (+{formatNum(2, p)}) · تا {formatNum(75, p)}ث (+{formatNum(1, p)})</span>
               </div>
               <div className="pt-1.5 flex justify-between gap-2 text-emerald-800 dark:text-emerald-300">
-                <span className="font-bold">ضرب‌المثل ({formatNum(80, p)} / {formatNum(100, p)} / {formatNum(135, p)} ثانیه)</span>
+                <span className="font-bold">ضرب‌المثل ({formatNum(80, p)} / {formatNum(100, p)} / {formatNum(120, p)} ثانیه)</span>
                 <span>{formatNum(5, p)} / {formatNum(8, p)} / {formatNum(10, p)} امتیاز + امتیاز تایم پله‌ای تا +{formatNum(5, p)}</span>
               </div>
             </div>
@@ -82,7 +82,7 @@ export const RulesSheet: React.FC = () => {
               <span>قانون موضوع طلایی {formatNum(30, p)} امتیازی (فقط دور آخر!)</span>
             </h3>
             <p className="text-xs text-slate-700 dark:text-slate-300">
-              موضوع طلایی فقط در <strong>آخرین دور مسابقه</strong> باز می‌شود ({formatNum(210, p)} ثانیه = ۳.۵ دقیقه). امتیاز تایم پله‌ای: تا {formatNum(60, p)}ث (+{formatNum(10, p)})، تا {formatNum(110, p)}ث (+{formatNum(6, p)}) و تا {formatNum(155, p)}ث (+{formatNum(3, p)}).
+              موضوع طلایی فقط در <strong>آخرین دور مسابقه</strong> باز می‌شود ({formatNum(170, p)} ثانیه = ۲ دقیقه و ۵۰ ثانیه). امتیاز تایم پله‌ای: تا {formatNum(45, p)}ث (+{formatNum(10, p)})، تا {formatNum(90, p)}ث (+{formatNum(6, p)}) و تا {formatNum(130, p)}ث (+{formatNum(3, p)}).
             </p>
           </div>
 
@@ -92,7 +92,7 @@ export const RulesSheet: React.FC = () => {
               <span>قانون هیجان‌انگیز «ریسک ۲۰ ثانیه‌ای» (کلمات ۶ امتیازی)</span>
             </h3>
             <p className="text-xs text-slate-700 dark:text-slate-300">
-              به ازای هر ۵ دور بازی، هر تیم <strong>۱ فرصت ریسک ۲۰ ثانیه‌ای</strong> دریافت می‌کند (با حداقل ۱ فرصت حتی در بازی‌های کوتاه). اجراکننده پس از دیدن کلمه ۶ امتیازی (به جز کودکان و ضرب‌المثل) می‌تواند ریسک کند: زمان به <strong>تنها ۲۰ ثانیه</strong> فشرده می‌شود؛ در صورت حدس موفق تیم <strong>+{formatNum(20, p)} امتیاز</strong> و در صورت عدم موفقیت <strong>−{formatNum(5, p)} امتیاز</strong> دریافت خواهد کرد. خطاهای حین اجرا نیز اعمال می‌گردد.
+              به ازای هر ۵ دور بازی، هر تیم <strong>۱ فرصت ریسک ۲۰ ثانیه‌ای</strong> دریافت می‌کند (با حداقل ۱ فرصت حتی در بازی‌های کوتاه). اجراکننده پس از دیدن کلمه ۶ امتیازی (به جز موضوعات کودکان و ضرب‌المثل) می‌تواند ریسک کند: زمان به <strong>تنها ۲۰ ثانیه</strong> فشرده می‌شود؛ در صورت حدس موفق تیم <strong>+{formatNum(20, p)} امتیاز</strong> و در صورت عدم موفقیت <strong>−{formatNum(5, p)} امتیاز</strong> دریافت خواهد کرد. خطاهای حین اجرا نیز اعمال می‌گردد.
             </p>
           </div>
 
