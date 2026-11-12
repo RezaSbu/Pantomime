@@ -82,6 +82,7 @@ export interface AppSettings {
   persianDigits: boolean;
   allowRepeatWords: boolean;
   allowNegativeScore: boolean;
+  enableSpecialOverride: boolean;
 }
 
 export interface GameSetupConfig {
@@ -93,6 +94,7 @@ export interface GameSetupConfig {
   selectedCategoryIds?: string[];
   enabledDifficulties?: Difficulty[];
   goldenEnabled?: boolean;
+  enableSpecialOverride?: boolean;
 }
 
 export interface TimerState {
@@ -178,6 +180,7 @@ export interface ActiveMatchState {
   enabledDifficulties: Difficulty[];
   goldenEnabled: boolean;
   goldenOpportunitiesPerTeam: number;
+  enableSpecialOverride: boolean;
   currentRound: number;
   currentTurnIndexInRound: number;
   roundTeamOrder: string[];

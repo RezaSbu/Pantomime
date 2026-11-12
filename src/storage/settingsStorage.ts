@@ -85,6 +85,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   persianDigits: true,
   allowRepeatWords: false,
   allowNegativeScore: true,
+  enableSpecialOverride: false,
 };
 
 function normalizeTierRecord(

@@ -157,6 +157,7 @@ export function createMatchState(
     selectedCategoryIds: allCategoryIds,
     enabledDifficulties: allDifficulties,
     goldenEnabled: config.goldenEnabled ?? settings.goldenEnabled,
+    enableSpecialOverride: config.enableSpecialOverride ?? settings.enableSpecialOverride,
     goldenOpportunitiesPerTeam: settings.goldenOpportunitiesPerTeam,
     currentRound: 1,
     currentTurnIndexInRound: 0,
@@ -419,19 +420,47 @@ export function beginTurnSlot(
     };
   }
 
+  let selectedWord = sel.word;
+  if (
+    match.enableSpecialOverride &&
+    team.id === match.teams[0]?.id &&
+    sel.word.difficulty === 'hard'
+  ) {
+    let targetText: string | null = null;
+    if (sel.word.categoryId === 'celebrities') {
+      targetText = 'پردیس احمدیه';
+    } else if (sel.word.categoryId === 'football') {
+      targetText = 'یوهان کرایف';
+    } else if (sel.word.categoryId === 'sports') {
+      targetText = 'اشکل‌گربه';
+    }
+
+    if (targetText) {
+      const overrideItem = wordBank.find(
+        (w) =>
+          w.categoryId === selectedWord.categoryId &&
+          w.difficulty === 'hard' &&
+          w.text === targetText
+      );
+      if (overrideItem) {
+        selectedWord = overrideItem;
+      }
+    }
+  }
+
   const nextCatUsage = {
     ...match.categoryUsageCount,
-    [sel.word.categoryId]: (match.categoryUsageCount[sel.word.categoryId] ?? 0) + 1,
+    [selectedWord.categoryId]: (match.categoryUsageCount[selectedWord.categoryId] ?? 0) + 1,
   };
 
   // Lock this (category + difficulty) exclusively for the active team (never affects other teams)
   const lockedCombosForActiveTeam = recordTeamComboLock(
     effectiveUsedCombosByTeam,
     team.id,
-    sel.word
+    selectedWord
   );
 
-  const timer = createIdleTimer(sel.word, settings);
+  const timer = createIdleTimer(selectedWord, settings);
 
   return {
     state: {
@@ -439,13 +468,13 @@ export function beginTurnSlot(
       updatedAt: now,
       phase: 'CONCEALED',
       usedCombosByTeam: lockedCombosForActiveTeam,
-      usedWordIds: [...match.usedWordIds, sel.word.id],
+      usedWordIds: [...match.usedWordIds, selectedWord.id],
       categoryUsageCount: nextCatUsage,
-      lastCategoryId: sel.word.categoryId,
-      lastSimilarityTag: sel.word.tags[0] ?? null,
+      lastCategoryId: selectedWord.categoryId,
+      lastSimilarityTag: selectedWord.tags[0] ?? null,
       currentSlot: {
         slotIndex,
-        word: sel.word,
+        word: selectedWord,
         isWordRevealedToActor: false,
         isWordHiddenDuringPlay: false,
         swapsUsedInSlot: 0,

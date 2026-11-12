@@ -31,6 +31,7 @@ const ROUND_PRESETS = [3, 5, 7, 10];
 export const HomePage: React.FC = () => {
   const activeMatch = useGameStore((s) => s.activeMatch);
   const settings = useGameStore((s) => s.settings);
+  const updateSettings = useGameStore((s) => s.updateSettings);
   const setupDraftTeams = useGameStore((s) => s.setupDraftTeams);
   const startNewMatch = useGameStore((s) => s.startNewMatch);
   const resumeSavedMatch = useGameStore((s) => s.resumeSavedMatch);
@@ -99,6 +100,7 @@ export const HomePage: React.FC = () => {
       totalRounds: Math.max(1, Math.min(30, totalRounds)),
       wordsPerTurn: 1,
       startOrderMode: 'first',
+      enableSpecialOverride: settings.enableSpecialOverride,
     });
   };
 
@@ -440,6 +442,27 @@ export const HomePage: React.FC = () => {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Enable Toggle Control */}
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 gap-3">
+            <div className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white min-w-0">
+              enable
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                feedbackEngine.onTap(settings.soundEnabled);
+                updateSettings({ enableSpecialOverride: !settings.enableSpecialOverride });
+              }}
+              className={`min-h-[40px] px-4 rounded-xl text-xs font-extrabold transition-colors whitespace-nowrap shrink-0 border ${
+                settings.enableSpecialOverride
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'
+              }`}
+            >
+              {settings.enableSpecialOverride ? 'آن (On)' : 'آف (Off)'}
+            </button>
           </div>
 
           {/* Primary Launch CTA */}

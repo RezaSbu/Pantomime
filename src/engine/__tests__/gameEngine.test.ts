@@ -961,4 +961,63 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
       expect(getRisk20Remaining(match, teams[0].id)).toBe(1);
     });
   });
+
+  describe('Special Enable Override Feature', () => {
+    it('overrides Hard Celebrities, Hard Football, and Hard Sports for Team 1 when enableSpecialOverride is true', () => {
+      const teams = createDefaultTeams(2);
+      const match = createMatchState(
+        { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: true },
+        DEFAULT_SETTINGS
+      );
+
+      // Team 1 picks Celebrities Hard -> 'پردیس احمدیه'
+      const celebRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'celebrities',
+        forcedDifficulty: 'hard',
+      });
+      expect(celebRes.state.currentSlot?.word.text).toBe('پردیس احمدیه');
+
+      // Team 1 picks Football Hard -> 'یوهان کرایف'
+      const footballRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'football',
+        forcedDifficulty: 'hard',
+      });
+      expect(footballRes.state.currentSlot?.word.text).toBe('یوهان کرایف');
+
+      // Team 1 picks Sports Hard -> 'اشکل‌گربه'
+      const sportsRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'sports',
+        forcedDifficulty: 'hard',
+      });
+      expect(sportsRes.state.currentSlot?.word.text).toBe('اشکل‌گربه');
+    });
+
+    it('does not override words when enableSpecialOverride is false or for Team 2', () => {
+      const teams = createDefaultTeams(2);
+      const matchOff = createMatchState(
+        { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: false },
+        DEFAULT_SETTINGS
+      );
+
+      const celebResOff = beginTurnSlot(matchOff, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'celebrities',
+        forcedDifficulty: 'hard',
+      });
+      expect(celebResOff.state.currentSlot?.word).toBeDefined();
+
+      // For Team 2, even if enableSpecialOverride is true, standard selection applies
+      const matchTeam2 = {
+        ...createMatchState(
+          { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: true },
+          DEFAULT_SETTINGS
+        ),
+        currentTurnIndexInRound: 1, // Team 2
+      };
+      const team2Res = beginTurnSlot(matchTeam2, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'sports',
+        forcedDifficulty: 'hard',
+      });
+      expect(team2Res.state.currentSlot?.word).toBeDefined();
+    });
+  });
 });
