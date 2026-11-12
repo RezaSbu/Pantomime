@@ -10,7 +10,10 @@ import {
   cancelTurnSelectionBeforeReveal,
   createMatchState,
   finishTurnUnsolved,
+  getRisk20Quota,
+  getRisk20Remaining,
   isComboUsedByTeam,
+  isRisk20Eligible,
   markWordSolved,
   pauseTurnPlayTimer,
   proceedFromTurnResult,
@@ -18,9 +21,13 @@ import {
   reportInvalidWordAndReplace,
   resumeTurnPlayTimer,
   revealWordToActor,
+  RISK20_FAILURE_POINTS,
+  RISK20_SUCCESS_POINTS,
+  RISK20_TIME_SEC,
   startNextRoundInMatch,
   startTurnPlayTimer,
   swapWordInTurn,
+  toggleRisk20ForCurrentTurn,
 } from '../gameEngine';
 import { createDefaultTeams, getRoundTeamOrder } from '../roundManager';
 import {
@@ -772,5 +779,186 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(report.footballRatios.playerPercent).toBeGreaterThanOrEqual(69);
     expect(report.footballRatios.foreignAmongPlayersPercent).toBeGreaterThanOrEqual(69);
     expect(report.celebrityRatios.overallIranianPercent).toBeGreaterThanOrEqual(84);
+  });
+
+  describe('20-Second Risk Feature — Quota, Eligibility, Timer & Scoring Rules', () => {
+    it('calculates per-team 20-second risk quota correctly across match lengths with minimum floor of 1', () => {
+      expect(getRisk20Quota(1)).toBe(1);
+      expect(getRisk20Quota(3)).toBe(1);
+      expect(getRisk20Quota(4)).toBe(1);
+      expect(getRisk20Quota(5)).toBe(1);
+      expect(getRisk20Quota(7)).toBe(1);
+      expect(getRisk20Quota(9)).toBe(1);
+      expect(getRisk20Quota(10)).toBe(2);
+      expect(getRisk20Quota(12)).toBe(2);
+      expect(getRisk20Quota(14)).toBe(2);
+      expect(getRisk20Quota(15)).toBe(3);
+      expect(getRisk20Quota(20)).toBe(4);
+      expect(getRisk20Quota(21)).toBe(4);
+    });
+
+    it('enforces eligibility: only for hard (6-pt) regular words, not children or proverbs, and only when revealed', () => {
+      const teams = createDefaultTeams(2);
+      let match = createMatchState({ teams, totalRounds: 10, startOrderMode: 'first' }, DEFAULT_SETTINGS);
+
+      // In PRE_TURN phase: ineligible
+      expect(isRisk20Eligible(match)).toBe(false);
+
+      // Select easy (2-pt) word: ineligible
+      let turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'general',
+        forcedDifficulty: 'easy',
+      });
+      match = turnRes.state;
+      expect(isRisk20Eligible(match)).toBe(false);
+      match = revealWordToActor(match);
+      expect(isRisk20Eligible(match)).toBe(false); // still ineligible because it is easy
+
+      // Select medium (4-pt) word: ineligible
+      match = cancelTurnSelectionBeforeReveal(match);
+      turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'general',
+        forcedDifficulty: 'medium',
+      });
+      match = revealWordToActor(turnRes.state);
+      expect(isRisk20Eligible(match)).toBe(false);
+
+      // Select children category hard word: ineligible
+      match = cancelTurnSelectionBeforeReveal(match);
+      turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'children',
+        forcedDifficulty: 'hard',
+      });
+      match = revealWordToActor(turnRes.state);
+      expect(isRisk20Eligible(match)).toBe(false);
+
+      // Select proverb category hard word: ineligible
+      match = cancelTurnSelectionBeforeReveal(match);
+      turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'proverb',
+        forcedDifficulty: 'hard',
+      });
+      match = revealWordToActor(turnRes.state);
+      expect(isRisk20Eligible(match)).toBe(false);
+
+      // Select general category hard word before reveal: ineligible
+      match = cancelTurnSelectionBeforeReveal(match);
+      turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'general',
+        forcedDifficulty: 'hard',
+      });
+      match = turnRes.state;
+      expect(isRisk20Eligible(match)).toBe(false); // not revealed yet
+
+      // Once revealed to actor: ELIGIBLE!
+      match = revealWordToActor(match);
+      expect(isRisk20Eligible(match)).toBe(true);
+      expect(getRisk20Remaining(match, teams[0].id)).toBe(2);
+    });
+
+    it('toggles risk mode on and off, switching timer duration to 20s and back to default time', () => {
+      const teams = createDefaultTeams(2);
+      let match = createMatchState({ teams, totalRounds: 5, startOrderMode: 'first' }, DEFAULT_SETTINGS);
+      const turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'football',
+        forcedDifficulty: 'hard',
+      });
+      match = revealWordToActor(turnRes.state);
+      expect(match.timer.durationSec).toBe(110);
+      expect(match.currentSlot?.isRisk20Active).toBeFalsy();
+
+      // Toggle ON
+      match = toggleRisk20ForCurrentTurn(match);
+      expect(match.currentSlot?.isRisk20Active).toBe(true);
+      expect(match.timer.durationSec).toBe(RISK20_TIME_SEC); // 20
+
+      // Toggle OFF (cancel)
+      match = toggleRisk20ForCurrentTurn(match);
+      expect(match.currentSlot?.isRisk20Active).toBe(false);
+      expect(match.timer.durationSec).toBe(110);
+    });
+
+    it('awards exactly +20 points (minus fouls) on success, consumes 1 charge, and records isRisk20: true', () => {
+      const teams = createDefaultTeams(2);
+      let match = createMatchState({ teams, totalRounds: 5, startOrderMode: 'first' }, DEFAULT_SETTINGS);
+      const turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'sports',
+        forcedDifficulty: 'hard',
+      });
+      match = revealWordToActor(turnRes.state);
+      match = toggleRisk20ForCurrentTurn(match);
+      match = startTurnPlayTimer(match, 100_000);
+
+      // Record 1 foul
+      match = recordWrongGuessInTurn(match);
+      expect(match.currentSlot?.wrongGuessesInSlot).toBe(1);
+
+      // Solved at 10 seconds elapsed
+      match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 110_000);
+      expect(match.phase).toBe('TURN_RESULT');
+
+      const ev = match.turnCompletedEvents[0];
+      expect(ev.isRisk20).toBe(true);
+      expect(ev.basePoints).toBe(RISK20_SUCCESS_POINTS); // 20
+      expect(ev.speedBonus).toBe(0); // no standard speed bonus in risk mode
+      expect(ev.foulPenalty).toBe(1); // 1 pt foul penalty
+      expect(ev.netPoints).toBe(19); // 20 - 1 = 19
+
+      // Consumed 1 charge for Team 1
+      expect(match.risk20UsedByTeam[teams[0].id]).toBe(1);
+      expect(getRisk20Remaining(match, teams[0].id)).toBe(0);
+      // Team 2 still has full charges
+      expect(getRisk20Remaining(match, teams[1].id)).toBe(1);
+    });
+
+    it('penalizes with -5 points (minus fouls) on timeout, consumes 1 charge, and records isRisk20: true', () => {
+      const teams = createDefaultTeams(2);
+      let match = createMatchState({ teams, totalRounds: 5, startOrderMode: 'first' }, DEFAULT_SETTINGS);
+      const turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'tech_science',
+        forcedDifficulty: 'hard',
+      });
+      match = revealWordToActor(turnRes.state);
+      match = toggleRisk20ForCurrentTurn(match);
+      match = startTurnPlayTimer(match, 100_000);
+
+      // Record 2 fouls
+      match = recordWrongGuessInTurn(match);
+      match = recordWrongGuessInTurn(match);
+      expect(match.currentSlot?.wrongGuessesInSlot).toBe(2);
+
+      // Timeout at 20 seconds elapsed
+      match = finishTurnUnsolved(match, 'timeout', INITIAL_WORDS, DEFAULT_SETTINGS, 120_000);
+      expect(match.phase).toBe('TURN_RESULT');
+
+      const ev = match.turnCompletedEvents[0];
+      expect(ev.isRisk20).toBe(true);
+      expect(ev.basePoints).toBe(RISK20_FAILURE_POINTS); // -5
+      expect(ev.foulPenalty).toBe(2);
+      expect(ev.netPoints).toBe(-7); // -5 - 2 = -7
+
+      expect(match.risk20UsedByTeam[teams[0].id]).toBe(1);
+      expect(getRisk20Remaining(match, teams[0].id)).toBe(0);
+    });
+
+    it('normal play does not consume risk charges and scores standard 6-pt rules', () => {
+      const teams = createDefaultTeams(2);
+      let match = createMatchState({ teams, totalRounds: 5, startOrderMode: 'first' }, DEFAULT_SETTINGS);
+      const turnRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'football',
+        forcedDifficulty: 'hard',
+      });
+      match = revealWordToActor(turnRes.state);
+      // Do NOT toggle risk
+      match = startTurnPlayTimer(match, 100_000);
+      match = markWordSolved(match, INITIAL_WORDS, DEFAULT_SETTINGS, 110_000);
+
+      const ev = match.turnCompletedEvents[0];
+      expect(ev.isRisk20).toBeFalsy();
+      expect(ev.basePoints).toBe(6);
+      expect(ev.speedBonus).toBe(4); // fast solve bonus
+      expect(match.risk20UsedByTeam[teams[0].id]).toBe(0);
+      expect(getRisk20Remaining(match, teams[0].id)).toBe(1);
+    });
   });
 });

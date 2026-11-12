@@ -20,6 +20,7 @@ import {
   startNextRoundInMatch,
   startTurnPlayTimer,
   swapWordInTurn,
+  toggleRisk20ForCurrentTurn,
   toggleWordVisibilityDuringPlay,
 } from '../engine/gameEngine';
 import { createDefaultTeams } from '../engine/roundManager';
@@ -91,6 +92,7 @@ interface GameStoreState {
   revealSecretWord: () => void;
   concealSecretWord: () => void;
   startTimerForTurn: () => void;
+  toggleRisk20: () => void;
   togglePlayWordMask: () => void;
   pauseGame: () => void;
   resumeGame: () => void;
@@ -326,6 +328,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     feedbackEngine.onTimerStart(settings.soundEnabled, settings.vibrationEnabled);
     set({ activeMatch: next });
     persistActiveMatch(next).catch(() => {});
+  },
+
+  toggleRisk20: () => {
+    const { activeMatch, settings } = get();
+    if (!activeMatch) return;
+    const next = toggleRisk20ForCurrentTurn(activeMatch);
+    if (next !== activeMatch) {
+      feedbackEngine.onTap(settings.soundEnabled);
+      set({ activeMatch: next });
+      persistActiveMatch(next).catch(() => {});
+    }
   },
 
   togglePlayWordMask: () => {

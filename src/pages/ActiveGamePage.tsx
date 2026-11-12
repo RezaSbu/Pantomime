@@ -33,9 +33,11 @@ import { ScoreboardTable } from '../components/ScoreboardTable';
 import {
   canActiveTeamUseGolden,
   getActiveTeam,
+  getRisk20Remaining,
   getTeamUsedCombos,
   isComboUsedByTeam,
   isFinalRegularRound,
+  isRisk20Eligible,
 } from '../engine/gameEngine';
 import { getRoundTeamOrder } from '../engine/roundManager';
 import {
@@ -71,6 +73,7 @@ export const ActiveGamePage: React.FC = () => {
   const revealSecretWord = useGameStore((s) => s.revealSecretWord);
   const concealSecretWord = useGameStore((s) => s.concealSecretWord);
   const startTimerForTurn = useGameStore((s) => s.startTimerForTurn);
+  const toggleRisk20 = useGameStore((s) => s.toggleRisk20);
   const togglePlayWordMask = useGameStore((s) => s.togglePlayWordMask);
   const pauseGame = useGameStore((s) => s.pauseGame);
   const resumeGame = useGameStore((s) => s.resumeGame);
@@ -259,6 +262,11 @@ export const ActiveGamePage: React.FC = () => {
   const swapsRemaining = slot
     ? Math.max(0, settings.maxSwapsPerCard - slot.swapsUsedInSlot)
     : settings.maxSwapsPerCard;
+
+  const isRisk20 = Boolean(slot?.isRisk20Active);
+  const risk20Eligible = activeMatch ? isRisk20Eligible(activeMatch) : false;
+  const risk20Remaining = activeMatch ? getRisk20Remaining(activeMatch, activeTeam.id) : 0;
+  const canShowRisk20 = Boolean(slot?.isWordRevealedToActor && (risk20Eligible || isRisk20));
 
   const activeBonusWindow =
     currentWord && (activeMatch.phase === 'PLAYING' || activeMatch.phase === 'PAUSED')
@@ -924,18 +932,48 @@ export const ActiveGamePage: React.FC = () => {
                   </div>
 
                   <div className="shrink-0 space-y-2 w-full">
+                    {canShowRisk20 && (
+                      <button
+                        type="button"
+                        onClick={toggleRisk20}
+                        className={`w-full min-h-[46px] inline-flex items-center justify-between gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border transition-all active:scale-[0.99] ${
+                          slot.isRisk20Active
+                            ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-500 shadow-lg shadow-rose-600/30 ring-2 ring-rose-400'
+                            : 'bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                        }`}
+                      >
+                        <div className="inline-flex items-center gap-1.5">
+                          <Zap
+                            className={`w-4 h-4 shrink-0 fill-current ${
+                              slot.isRisk20Active ? 'text-amber-300 animate-bounce' : 'text-rose-600 dark:text-rose-400'
+                            }`}
+                          />
+                          <span>{slot.isRisk20Active ? 'ریسک ۲۰ ثانیه‌ای فعال است (لغو ریسک)' : 'ریسک ۲۰ ثانیه‌ای'}</span>
+                        </div>
+                        <span className="text-[11px] font-bold tabular-nums opacity-95">
+                          {slot.isRisk20Active
+                            ? '۲۰ ثانیه زمان • ۲۰+ یا ۵- امتیاز'
+                            : `${formatNum(risk20Remaining, p)} فرصت باقی‌مانده`}
+                        </span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={startTimerForTurn}
                       className={`w-full min-h-[48px] sm:min-h-[54px] inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm sm:text-base font-black text-white active:scale-[0.99] transition-all whitespace-nowrap ${
-                        isGoldenTurn
+                        slot.isRisk20Active
+                          ? 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 shadow-lg shadow-rose-600/30 ring-2 ring-rose-400'
+                          : isGoldenTurn
                           ? 'bg-amber-600 hover:bg-amber-700'
                           : 'bg-emerald-600 hover:bg-emerald-700'
                       }`}
                     >
                       <Play className="w-5 h-5 fill-current shrink-0" />
                       <span>
-                        {activeMatch.timer.accumulatedElapsedMs > 0
+                        {slot.isRisk20Active
+                          ? 'شروع ریسک ۲۰ ثانیه‌ای (۲۰ ثانیه زمان)!'
+                          : activeMatch.timer.accumulatedElapsedMs > 0
                           ? 'ادامه تایمر با زمان باقی‌مانده'
                           : 'شروع تایمر و اجرای پانتومیم!'}
                       </span>
@@ -1085,7 +1123,12 @@ export const ActiveGamePage: React.FC = () => {
                   )}
 
                   <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] sm:text-xs font-bold tabular-nums">
-                    {activeBonusWindow ? (
+                    {slot.isRisk20Active ? (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 rounded-full border border-rose-300 dark:border-rose-800 animate-pulse">
+                        <Zap className="w-3.5 h-3.5 shrink-0 fill-current text-rose-500" />
+                        <span>ریسک ۲۰ ثانیه‌ای (موفقیت: ۲۰+ • شکست: ۵- امتیاز)</span>
+                      </span>
+                    ) : activeBonusWindow ? (
                       <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                         <Zap className="w-3.5 h-3.5 shrink-0" />
                         <span>
@@ -1371,9 +1414,15 @@ export const ActiveGamePage: React.FC = () => {
                     {/* 1. Base Word Score */}
                     <div className="px-3.5 py-2 sm:py-2.5 flex items-center justify-between gap-2">
                       <div className="text-slate-700 dark:text-slate-300 truncate">
-                        <span className="font-bold">امتیاز کلمه</span>
+                        <span className="font-bold">
+                          {finalEv?.isRisk20 ? 'امتیاز ریسک ۲۰ ثانیه‌ای' : 'امتیاز کلمه'}
+                        </span>
                         <span className="text-slate-500 dark:text-slate-400 mr-1.5 text-[11px]">
-                          {isSolved && finalEv
+                          {finalEv?.isRisk20
+                            ? isSolved
+                              ? '(موفقیت در مهلت ۲۰ ثانیه)'
+                              : '(عدم موفقیت در مهلت ۲۰ ثانیه)'
+                            : isSolved && finalEv
                             ? finalEv.kind === 'golden'
                               ? `(طلایی ${formatNum(turnBasePoints, p)} امتیازی)`
                               : `(سطح ${difficultyLabel(finalEv.difficulty)})`
@@ -1386,11 +1435,15 @@ export const ActiveGamePage: React.FC = () => {
                         className={`font-extrabold whitespace-nowrap ${
                           turnBasePoints > 0
                             ? 'text-emerald-700 dark:text-emerald-400'
+                            : turnBasePoints < 0
+                            ? 'text-rose-600 dark:text-rose-400'
                             : 'text-slate-400'
                         }`}
                       >
                         {turnBasePoints > 0
                           ? `+${formatNum(turnBasePoints, p)} امتیاز`
+                          : turnBasePoints < 0
+                          ? `−${formatNum(Math.abs(turnBasePoints), p)} امتیاز`
                           : `${formatNum(0, p)} امتیاز`}
                       </span>
                     </div>

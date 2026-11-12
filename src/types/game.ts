@@ -134,6 +134,7 @@ export interface ScoreEvent {
   foulPenalty: number;
   netPoints: number;
   wrongGuessesInSlot: number;
+  isRisk20?: boolean;
 }
 
 export interface TeamScoreSummary {
@@ -162,6 +163,7 @@ export interface ActiveTurnSlot {
   wrongGuessesInSlot: number;
   isScored: boolean;
   fallbackNotice?: string;
+  isRisk20Active?: boolean;
 }
 
 export interface ActiveMatchState {
@@ -188,6 +190,7 @@ export interface ActiveMatchState {
   allEvents: ScoreEvent[];
   extraWrongGuessesByTeam: Record<string, number>;
   goldenUsedByTeam: Record<string, number>;
+  risk20UsedByTeam: Record<string, number>;
   /**
    * Per-team locked (categoryId:difficulty) combinations so a team cannot pick
    * the same category+difficulty twice in the same match.

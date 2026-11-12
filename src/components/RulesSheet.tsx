@@ -86,6 +86,16 @@ export const RulesSheet: React.FC = () => {
             </p>
           </div>
 
+          <div className="rounded-2xl border border-rose-500/40 bg-rose-50/60 dark:bg-rose-950/25 p-4 space-y-1.5 tabular-nums">
+            <h3 className="font-extrabold text-rose-900 dark:text-rose-300 flex items-center gap-2 text-sm">
+              <Zap className="w-4 h-4 text-rose-500 shrink-0 fill-current" />
+              <span>قانون هیجان‌انگیز «ریسک ۲۰ ثانیه‌ای» (کلمات ۶ امتیازی)</span>
+            </h3>
+            <p className="text-xs text-slate-700 dark:text-slate-300">
+              به ازای هر ۵ دور بازی، هر تیم <strong>۱ فرصت ریسک ۲۰ ثانیه‌ای</strong> دریافت می‌کند (با حداقل ۱ فرصت حتی در بازی‌های کوتاه). اجراکننده پس از دیدن کلمه ۶ امتیازی (به جز کودکان و ضرب‌المثل) می‌تواند ریسک کند: زمان به <strong>تنها ۲۰ ثانیه</strong> فشرده می‌شود؛ در صورت حدس موفق تیم <strong>+{formatNum(20, p)} امتیاز</strong> و در صورت عدم موفقیت <strong>−{formatNum(5, p)} امتیاز</strong> دریافت خواهد کرد. خطاهای حین اجرا نیز اعمال می‌گردد.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-1">
               <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">

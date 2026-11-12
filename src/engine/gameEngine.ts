@@ -128,10 +128,12 @@ export function createMatchState(
   const goldenUsedByTeam: Record<string, number> = {};
   const extraWrongGuessesByTeam: Record<string, number> = {};
   const usedCombosByTeam: Record<string, string[]> = {};
+  const risk20UsedByTeam: Record<string, number> = {};
   for (const t of config.teams) {
     goldenUsedByTeam[t.id] = 0;
     extraWrongGuessesByTeam[t.id] = 0;
     usedCombosByTeam[t.id] = [];
+    risk20UsedByTeam[t.id] = 0;
   }
 
   const allCategoryIds =
@@ -168,6 +170,7 @@ export function createMatchState(
     allEvents: [],
     extraWrongGuessesByTeam,
     goldenUsedByTeam,
+    risk20UsedByTeam,
     usedCombosByTeam,
     usedWordIds: [],
     categoryUsageCount: {},
@@ -199,6 +202,74 @@ export function canActiveTeamUseGolden(match: ActiveMatchState): boolean {
   if (!team) return false;
   const used = match.goldenUsedByTeam[team.id] ?? 0;
   return used < match.goldenOpportunitiesPerTeam;
+}
+
+export const RISK20_TIME_SEC = 20;
+export const RISK20_SUCCESS_POINTS = 20;
+export const RISK20_FAILURE_POINTS = -5;
+
+/**
+ * Calculates per-team 20-second risk charges based on match length:
+ * 1 opportunity per 5 rounds with a minimum floor of 1 for shorter matches.
+ * e.g., 1-4 rounds -> 1, 5-9 rounds -> 1, 10-14 rounds -> 2, 15-19 rounds -> 3, 20-24 rounds -> 4.
+ */
+export function getRisk20Quota(totalRounds: number): number {
+  return Math.max(1, Math.floor(totalRounds / 5));
+}
+
+/**
+ * Returns remaining 20-second risk charges for a given team.
+ */
+export function getRisk20Remaining(match: ActiveMatchState, teamId: string): number {
+  const quota = getRisk20Quota(match.totalRounds);
+  const used = match.risk20UsedByTeam?.[teamId] ?? 0;
+  return Math.max(0, quota - used);
+}
+
+/**
+ * Checks if the current revealed turn slot is eligible for the 20-second risk:
+ * - Must be in CONCEALED phase
+ * - Word must be revealed to actor
+ * - Difficulty must be Hard (6 points)
+ * - Must be regular word kind (not golden)
+ * - Category must NOT be children or proverb
+ * - Active team must have remaining risk charges
+ */
+export function isRisk20Eligible(match: ActiveMatchState): boolean {
+  if (match.phase !== 'CONCEALED') return false;
+  const slot = match.currentSlot;
+  if (!slot || !slot.isWordRevealedToActor) return false;
+  const word = slot.word;
+  if (word.difficulty !== 'hard') return false;
+  if (word.kind !== 'regular') return false;
+  if (word.categoryId === 'children' || word.categoryId === 'proverb') return false;
+  const team = getActiveTeam(match);
+  if (!team) return false;
+  return getRisk20Remaining(match, team.id) > 0;
+}
+
+/**
+ * Toggles the 20-second risk mode on or off during CONCEALED phase.
+ * Updates timer duration to 20s when activated, and restores word default time when deactivated.
+ */
+export function toggleRisk20ForCurrentTurn(match: ActiveMatchState): ActiveMatchState {
+  if (!match.currentSlot) return match;
+  if (!isRisk20Eligible(match) && !match.currentSlot.isRisk20Active) {
+    return match;
+  }
+  const nextActive = !match.currentSlot.isRisk20Active;
+  const durationSec = nextActive ? RISK20_TIME_SEC : match.currentSlot.word.defaultTimeSec;
+  return {
+    ...match,
+    currentSlot: {
+      ...match.currentSlot,
+      isRisk20Active: nextActive,
+    },
+    timer: {
+      ...match.timer,
+      durationSec,
+    },
+  };
 }
 
 export function beginTurnSlot(
@@ -796,6 +867,11 @@ export function markWordSolved(
     match.currentSlot.word
   );
 
+  const isRisk20 = Boolean(match.currentSlot.isRisk20Active);
+  const basePoints = isRisk20 ? RISK20_SUCCESS_POINTS : score.basePoints;
+  const speedBonus = isRisk20 ? 0 : score.speedBonus;
+  const netPoints = isRisk20 ? RISK20_SUCCESS_POINTS - foulPenalty : score.totalPoints - foulPenalty;
+
   const correctEvent: ScoreEvent = {
     id: uid('ev', now),
     timestamp: now,
@@ -811,17 +887,26 @@ export function markWordSolved(
     kind: match.currentSlot.word.kind,
     outcome: 'correct',
     elapsedSeconds: snap.elapsedSeconds,
-    basePoints: score.basePoints,
-    speedBonus: score.speedBonus,
+    basePoints,
+    speedBonus,
     swapPenalty: 0,
     foulPenalty,
-    netPoints: score.totalPoints - foulPenalty,
+    netPoints,
     wrongGuessesInSlot: match.currentSlot.wrongGuessesInSlot,
+    isRisk20,
   };
+
+  const nextRisk20Used = isRisk20
+    ? {
+        ...match.risk20UsedByTeam,
+        [team.id]: (match.risk20UsedByTeam[team.id] ?? 0) + 1,
+      }
+    : match.risk20UsedByTeam;
 
   const nextMatchBase: ActiveMatchState = {
     ...match,
     updatedAt: now,
+    risk20UsedByTeam: nextRisk20Used,
     usedCombosByTeam: nextUsedCombos,
     currentSlot: {
       ...match.currentSlot,
@@ -894,6 +979,11 @@ export function finishTurnUnsolved(
     match.currentSlot.word
   );
 
+  const isRisk20 = Boolean(match.currentSlot.isRisk20Active);
+  const basePoints = isRisk20 ? RISK20_FAILURE_POINTS : 0;
+  const speedBonus = 0;
+  const netPoints = isRisk20 ? RISK20_FAILURE_POINTS - foulPenalty : -foulPenalty;
+
   const endEvent: ScoreEvent = {
     id: uid('ev', now),
     timestamp: now,
@@ -909,17 +999,26 @@ export function finishTurnUnsolved(
     kind: match.currentSlot.word.kind,
     outcome,
     elapsedSeconds: snap.elapsedSeconds,
-    basePoints: 0,
-    speedBonus: 0,
+    basePoints,
+    speedBonus,
     swapPenalty: 0,
     foulPenalty,
-    netPoints: -foulPenalty,
+    netPoints,
     wrongGuessesInSlot: match.currentSlot.wrongGuessesInSlot,
+    isRisk20,
   };
+
+  const nextRisk20Used = isRisk20
+    ? {
+        ...match.risk20UsedByTeam,
+        [team.id]: (match.risk20UsedByTeam[team.id] ?? 0) + 1,
+      }
+    : match.risk20UsedByTeam;
 
   const nextMatchBase: ActiveMatchState = {
     ...match,
     updatedAt: now,
+    risk20UsedByTeam: nextRisk20Used,
     usedCombosByTeam: nextUsedCombos,
     currentSlot: {
       ...match.currentSlot,
