@@ -9,7 +9,7 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { AdabaziLogo } from '../components/AdabaziLogo';
 import { DynamicIcon } from '../components/DynamicIcon';
 import { PWAInstallControl } from '../components/PWAInstallControl';
@@ -49,6 +49,26 @@ export const HomePage: React.FC = () => {
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [isCustomRounds, setIsCustomRounds] = useState<boolean>(false);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
+  const secretTapRef = useRef<{ count: number; lastAt: number }>({ count: 0, lastAt: 0 });
+
+  const handleSecretLogoTap = () => {
+    const now = Date.now();
+    if (now - secretTapRef.current.lastAt > 2000) {
+      secretTapRef.current.count = 1;
+    } else {
+      secretTapRef.current.count += 1;
+    }
+    secretTapRef.current.lastAt = now;
+
+    if (secretTapRef.current.count >= 5) {
+      secretTapRef.current.count = 0;
+      const nextVal = !settings.enableSpecialOverride;
+      updateSettings({ enableSpecialOverride: nextVal });
+      if (settings.vibrationEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(nextVal ? [25, 40, 25] : 20);
+      }
+    }
+  };
 
   const activeTeamInSaved =
     hasSavedGame && activeMatch ? getActiveTeam(activeMatch) : null;
@@ -183,7 +203,18 @@ export const HomePage: React.FC = () => {
       {/* Clean Mobile-First Game Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <AdabaziLogo className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 drop-shadow-sm" />
+          <div
+            onClick={handleSecretLogoTap}
+            className="relative shrink-0 select-none"
+          >
+            <AdabaziLogo className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 drop-shadow-sm" />
+            {settings.enableSpecialOverride && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500/85"
+              />
+            )}
+          </div>
           <div className="space-y-1 min-w-0">
             <h1
               className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white"
@@ -442,27 +473,6 @@ export const HomePage: React.FC = () => {
                 </span>
               </div>
             </div>
-          </div>
-
-          {/* Enable Toggle Control */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 gap-3">
-            <div className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white min-w-0">
-              enable
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                feedbackEngine.onTap(settings.soundEnabled);
-                updateSettings({ enableSpecialOverride: !settings.enableSpecialOverride });
-              }}
-              className={`min-h-[40px] px-4 rounded-xl text-xs font-extrabold transition-colors whitespace-nowrap shrink-0 border ${
-                settings.enableSpecialOverride
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700'
-              }`}
-            >
-              {settings.enableSpecialOverride ? 'آن (On)' : 'آف (Off)'}
-            </button>
           </div>
 
           {/* Primary Launch CTA */}

@@ -162,6 +162,7 @@ export function loadSettings(): AppSettings {
       foulPenalty:
         typeof parsed.foulPenalty === 'number' ? parsed.foulPenalty : DEFAULT_SETTINGS.foulPenalty,
       difficultyWeights: { ...DEFAULT_SETTINGS.difficultyWeights, ...parsed.difficultyWeights },
+      enableSpecialOverride: false,
     };
 
     if (isLegacy) {
@@ -180,7 +181,10 @@ export function loadSettings(): AppSettings {
 export function saveSettings(settings: AppSettings): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    window.localStorage.setItem(
+      SETTINGS_STORAGE_KEY,
+      JSON.stringify({ ...settings, enableSpecialOverride: false })
+    );
   } catch {
     // Ignore quota errors
   }

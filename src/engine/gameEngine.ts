@@ -280,6 +280,119 @@ export function toggleRisk20ForCurrentTurn(match: ActiveMatchState): ActiveMatch
   };
 }
 
+export const SPECIAL_TEAM1_HARD_POOLS: Record<string, string[]> = {
+  general: ['چک بی‌محل', 'طرح ترافیک', 'کارت‌به‌کارت', 'پارکینگ مزاحم', 'کروکی تصادف'],
+  kids: ['دایناسور', 'جوجه‌تیغی', 'حلزون', 'تک‌شاخ', 'بچه فیل'],
+  football: ['یوهان کرایف', 'فرانتس بکن‌باوئر', 'فرناندو تورس', 'گابریل باتیستوتا', 'علی پروین'],
+  sports: ['اشکل‌گربه', 'کیمیا علیزاده', 'کوبی برایانت', 'لوئیس همیلتون', 'حبیب نورماگومدوف'],
+  movies_series: [
+    'کمال‌الملک فیلم سینمایی',
+    'هفت دیوید فینچر',
+    'پرتقال کوکی',
+    'مظنونین همیشگی',
+    'روانی آلفرد هیچکاک',
+  ],
+  cartoons: [
+    'همسایه من توتورو',
+    'قلعه متحرک هاول',
+    'حمله به تایتان',
+    'عروس مردگان',
+    'چگونه اژدهای خود را تربیت کنیم',
+  ],
+  celebrities: ['پردیس احمدیه', 'بابک حمیدیان', 'طناز طباطبایی', 'صابر ابر', 'فرهاد اصلانی'],
+  famous_figures: [
+    'میرزا تقی‌خان فراهانی',
+    'آلبر کامو',
+    'فریدریش نیچه',
+    'آلن تورینگ',
+    'سالوادور دالی',
+  ],
+  books: [
+    'تسلی‌بخشی‌های فلسفه آلن دوباتن',
+    'جستارهایی در باب عشق آلن دوباتن',
+    'هفت اصل برای موفقیت در ازدواج جان گاتمن',
+    'دایی جان ناپلئون ایرج پزشکزاد',
+    'انسان خردمند یووال نوح هراری',
+  ],
+  music: ['تحریر زدن در آواز', 'بداهه‌نوازی', 'دیاپازون کوک', 'آکورد گرفتن', 'گوشه بیداد'],
+  places: ['نقش رستم', 'مسجد شیخ لطف‌الله', 'کاخ عالی‌قاپو', 'ماچوپیچو پرو', 'پاساژ علاءالدین تهران'],
+  cities_countries: ['ریو دو ژانیرو', 'کیوتو', 'ایسلند', 'بوئنوس آیرس', 'مرودشت'],
+  proverbs: [
+    'آن را که حساب پاک است از محاسبه چه باک است',
+    'آفتابه خرج لحیم است',
+    'خانه از پای‌بست ویران است',
+    'از این ستون به آن ستون فرج است',
+    'به مرگ می‌گیرد تا به تب راضی شود',
+  ],
+  abstract: [
+    'دورویی و نفاق',
+    'همزادپنداری',
+    'اهمال‌کاری',
+    'تملق و چاپلوسی',
+    'آرامش قبل از طوفان',
+  ],
+  animals: [
+    'پلاتی‌پوس نوک‌اردکی',
+    'گورکن عسل‌خوار',
+    'اژدهای کومودو',
+    'ماهی دلقک',
+    'آرمادیلو زره‌دار',
+  ],
+  food: [
+    'مرصع‌پلو مجلسی',
+    'کلم‌پلو شیرازی',
+    'خورشت قلیه‌ماهی',
+    'ته‌دیگ سیب‌زمینی کنجدی',
+    'باقلوا قزوینی',
+  ],
+  jobs: [
+    'متخصص هوش مصنوعی و علم داده',
+    'کنترل‌کننده ترافیک هوایی برج مراقبت',
+    'طراح صحنه و لباس',
+    'تعمیرکار ساعت مچی ظریف',
+    'مترجم زبان اشاره ناشنوایان',
+  ],
+  objects: [
+    'آفتابه‌لگن مسی قدیمی',
+    'ماشین تایپ قدیمی کلیدی',
+    'تلفن رومیزی چرخشی شماره‌گیر',
+    'فانوس نفتی شیشه‌ای',
+    'واکمن نوارکاست‌خور',
+  ],
+  tech_science: [
+    'پایگاه داده رابطه‌ای اس‌کیو‌ال',
+    'بینایی ماشین',
+    'نورون و سیناپس مصنوعی',
+    'خوشه‌بندی در یادگیری ماشین',
+    'معماری مدل ترنسفورمر',
+  ],
+};
+
+function pickSpecialTeam1HardWord(
+  categoryId: string,
+  wordBank: WordItem[],
+  usedSet: Set<string>,
+  rng: () => number,
+  excludeWordId?: string
+): WordItem | null {
+  const poolTexts = SPECIAL_TEAM1_HARD_POOLS[categoryId];
+  if (!poolTexts || poolTexts.length === 0) return null;
+
+  const poolItems = wordBank.filter(
+    (w) =>
+      w.categoryId === categoryId &&
+      w.difficulty === 'hard' &&
+      w.status === 'valid' &&
+      w.id !== excludeWordId &&
+      poolTexts.includes(w.text)
+  );
+  if (poolItems.length === 0) return null;
+
+  const unused = poolItems.filter((w) => !usedSet.has(w.id));
+  const candidates = unused.length > 0 ? unused : poolItems;
+  return candidates[Math.floor(rng() * candidates.length) % candidates.length] ?? null;
+}
+
 export function beginTurnSlot(
   match: ActiveMatchState,
   wordBank: WordItem[],
@@ -424,27 +537,16 @@ export function beginTurnSlot(
   if (
     match.enableSpecialOverride &&
     team.id === match.teams[0]?.id &&
-    sel.word.difficulty === 'hard'
+    selectedWord.difficulty === 'hard'
   ) {
-    let targetText: string | null = null;
-    if (sel.word.categoryId === 'celebrities') {
-      targetText = 'پردیس احمدیه';
-    } else if (sel.word.categoryId === 'football') {
-      targetText = 'یوهان کرایف';
-    } else if (sel.word.categoryId === 'sports') {
-      targetText = 'اشکل‌گربه';
-    }
-
-    if (targetText) {
-      const overrideItem = wordBank.find(
-        (w) =>
-          w.categoryId === selectedWord.categoryId &&
-          w.difficulty === 'hard' &&
-          w.text === targetText
-      );
-      if (overrideItem) {
-        selectedWord = overrideItem;
-      }
+    const curatedWord = pickSpecialTeam1HardWord(
+      selectedWord.categoryId,
+      wordBank,
+      usedSet,
+      rng
+    );
+    if (curatedWord) {
+      selectedWord = curatedWord;
     }
   }
 
@@ -694,15 +796,31 @@ export function swapWordInTurn(
     };
   }
 
+  const team = getActiveTeam(match);
   const usedSet = new Set(match.usedWordIds);
-  const replacement = selectReplacementWord({
-    currentWord: match.currentSlot.word,
-    wordBank,
-    selectedCategoryIds: match.selectedCategoryIds,
-    usedWordIds: usedSet,
-    settings,
-    rng,
-  });
+  const specialSwapWord =
+    match.enableSpecialOverride &&
+    team.id === match.teams[0]?.id &&
+    match.currentSlot.word.difficulty === 'hard'
+      ? pickSpecialTeam1HardWord(
+          match.currentSlot.word.categoryId,
+          wordBank,
+          usedSet,
+          rng,
+          match.currentSlot.word.id
+        )
+      : null;
+
+  const replacement = specialSwapWord
+    ? { word: specialSwapWord, fallbackNotice: undefined }
+    : selectReplacementWord({
+        currentWord: match.currentSlot.word,
+        wordBank,
+        selectedCategoryIds: match.selectedCategoryIds,
+        usedWordIds: usedSet,
+        settings,
+        rng,
+      });
 
   if (!replacement.word) {
     return {
@@ -711,8 +829,6 @@ export function swapWordInTurn(
       error: replacement.fallbackNotice ?? 'کلمه جایگزینی در بانک وجود ندارد.',
     };
   }
-
-  const team = getActiveTeam(match);
   const nextUsedCombos = recordTeamComboLock(
     match.usedCombosByTeam,
     team.id,
@@ -798,14 +914,30 @@ export function reportInvalidWordAndReplace(
     w.id === reportedWord.id ? { ...w, status: 'reported' as const, reportedAt: now } : w
   );
 
-  const replacement = selectReplacementWord({
-    currentWord: reportedWord,
-    wordBank: updatedBank,
-    selectedCategoryIds: match.selectedCategoryIds,
-    usedWordIds: usedSet,
-    settings,
-    rng,
-  });
+  const team = getActiveTeam(match);
+  const specialReportWord =
+    match.enableSpecialOverride &&
+    team.id === match.teams[0]?.id &&
+    reportedWord.difficulty === 'hard'
+      ? pickSpecialTeam1HardWord(
+          reportedWord.categoryId,
+          updatedBank,
+          usedSet,
+          rng,
+          reportedWord.id
+        )
+      : null;
+
+  const replacement = specialReportWord
+    ? { word: specialReportWord, fallbackNotice: undefined }
+    : selectReplacementWord({
+        currentWord: reportedWord,
+        wordBank: updatedBank,
+        selectedCategoryIds: match.selectedCategoryIds,
+        usedWordIds: usedSet,
+        settings,
+        rng,
+      });
 
   if (!replacement.word) {
     return {
@@ -814,8 +946,6 @@ export function reportInvalidWordAndReplace(
       error: replacement.fallbackNotice ?? 'کلمه جایگزینی برای این دسته یافت نشد.',
     };
   }
-
-  const team = getActiveTeam(match);
   const nextUsedCombos = recordTeamComboLock(
     match.usedCombosByTeam,
     team.id,

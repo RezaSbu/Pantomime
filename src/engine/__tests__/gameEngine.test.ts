@@ -24,6 +24,7 @@ import {
   RISK20_FAILURE_POINTS,
   RISK20_SUCCESS_POINTS,
   RISK20_TIME_SEC,
+  SPECIAL_TEAM1_HARD_POOLS,
   startNextRoundInMatch,
   startTurnPlayTimer,
   swapWordInTurn,
@@ -744,7 +745,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(parsed[0].difficulty).toBe(sample[0].difficulty);
   });
 
-  it('validates the entire 5,700-word Persian Word Bank (19 regular categories + 300 Golden phrases) with zero duplicates', () => {
+  it('validates the entire 6,100-word Persian Word Bank (19 regular categories + 415 Golden phrases) with zero duplicates', () => {
     const pardis = INITIAL_WORDS.find((w) => w.text === 'پردیس احمدیه');
     expect(pardis).toBeDefined();
     expect(pardis?.categoryId).toBe('celebrities');
@@ -752,9 +753,9 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(pardis?.basePoints).toBe(6);
 
     const report = validateWordBank(INITIAL_WORDS, INITIAL_CATEGORIES);
-    expect(report.totalWords).toBe(5800);
-    expect(report.regularWordsCount).toBe(5400);
-    expect(report.goldenWordsCount).toBe(400);
+    expect(report.totalWords).toBe(6100);
+    expect(report.regularWordsCount).toBe(5685);
+    expect(report.goldenWordsCount).toBe(415);
     expect(report.duplicateIds.length).toBe(0);
     expect(report.duplicateTexts.length).toBe(0);
     expect(report.orphanCategoryWords.length).toBe(0);
@@ -762,17 +763,17 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
 
     for (const stat of report.categoryStats) {
       if (stat.categoryId === 'golden') {
-        expect(stat.total).toBe(400);
+        expect(stat.total).toBe(415);
       } else if (stat.categoryId === 'movies_series') {
         expect(stat.easy).toBe(54);
         expect(stat.medium).toBe(162);
-        expect(stat.hard).toBe(324);
-        expect(stat.total).toBe(540);
+        expect(stat.hard).toBe(339);
+        expect(stat.total).toBe(555);
       } else {
         expect(stat.easy).toBe(27);
         expect(stat.medium).toBe(81);
-        expect(stat.hard).toBe(162);
-        expect(stat.total).toBe(270);
+        expect(stat.hard).toBe(177);
+        expect(stat.total).toBe(285);
       }
     }
 
@@ -963,61 +964,108 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
   });
 
   describe('Special Enable Override Feature', () => {
-    it('overrides Hard Celebrities, Hard Football, and Hard Sports for Team 1 when enableSpecialOverride is true', () => {
+    it('defines 5 valid Hard words in INITIAL_WORDS for every single one of the 19 regular categories', () => {
+      expect(Object.keys(SPECIAL_TEAM1_HARD_POOLS).length).toBe(INITIAL_CATEGORIES.length);
+
+      for (const cat of INITIAL_CATEGORIES) {
+        const pool = SPECIAL_TEAM1_HARD_POOLS[cat.id];
+        expect(pool, `Missing pool for ${cat.id}`).toBeDefined();
+        expect(pool.length, `Pool size mismatch for ${cat.id}`).toBe(5);
+        expect(new Set(pool).size, `Duplicate entries in pool for ${cat.id}`).toBe(5);
+
+        for (const text of pool) {
+          const found = INITIAL_WORDS.find(
+            (w) =>
+              w.categoryId === cat.id &&
+              w.difficulty === 'hard' &&
+              w.status === 'valid' &&
+              w.text === text
+          );
+          expect(found, `Word "${text}" not found in ${cat.id}.hard`).toBeDefined();
+        }
+      }
+
+      // Check specific required constraints
+      expect(SPECIAL_TEAM1_HARD_POOLS.celebrities).toContain('پردیس احمدیه');
+      expect(SPECIAL_TEAM1_HARD_POOLS.football).toContain('یوهان کرایف');
+      expect(SPECIAL_TEAM1_HARD_POOLS.sports).toContain('اشکل‌گربه');
+      const bottonBooks = SPECIAL_TEAM1_HARD_POOLS.books.filter((t) =>
+        t.includes('آلن دوباتن')
+      );
+      expect(bottonBooks.length).toBe(2);
+      expect(SPECIAL_TEAM1_HARD_POOLS.books.some((t) => t.includes('جان گاتمن'))).toBe(true);
+    });
+
+    it('restricts Team 1 Hard picks (including swap) strictly to the 5-word curated pool across all categories when enableSpecialOverride is true', () => {
       const teams = createDefaultTeams(2);
       const match = createMatchState(
         { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: true },
         DEFAULT_SETTINGS
       );
 
-      // Team 1 picks Celebrities Hard -> 'پردیس احمدیه'
-      const celebRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'celebrities',
-        forcedDifficulty: 'hard',
-      });
-      expect(celebRes.state.currentSlot?.word.text).toBe('پردیس احمدیه');
+      for (const cat of INITIAL_CATEGORIES) {
+        const res = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+          forcedCategoryId: cat.id,
+          forcedDifficulty: 'hard',
+          rng: () => 0.35,
+        });
+        const pickedText = res.state.currentSlot?.word.text;
+        expect(SPECIAL_TEAM1_HARD_POOLS[cat.id]).toContain(pickedText);
+      }
 
-      // Team 1 picks Football Hard -> 'یوهان کرایف'
-      const footballRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'football',
+      // Swapping a Hard word for Team 1 also stays inside the 5-word pool
+      const bookTurn = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'books',
         forcedDifficulty: 'hard',
+        rng: () => 0,
       });
-      expect(footballRes.state.currentSlot?.word.text).toBe('یوهان کرایف');
+      const firstWord = bookTurn.state.currentSlot?.word;
+      expect(firstWord).toBeDefined();
 
-      // Team 1 picks Sports Hard -> 'اشکل‌گربه'
-      const sportsRes = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'sports',
-        forcedDifficulty: 'hard',
-      });
-      expect(sportsRes.state.currentSlot?.word.text).toBe('اشکل‌گربه');
+      const swapped = swapWordInTurn(bookTurn.state, INITIAL_WORDS, DEFAULT_SETTINGS, 100_000, () => 0.5);
+      expect(swapped.swapped).toBe(true);
+      expect(swapped.state.currentSlot?.word.id).not.toBe(firstWord?.id);
+      expect(SPECIAL_TEAM1_HARD_POOLS.books).toContain(swapped.state.currentSlot?.word.text);
     });
 
-    it('does not override words when enableSpecialOverride is false or for Team 2', () => {
+    it('does not restrict Team 1 Medium/Easy picks, Team 2 picks, or any picks when enableSpecialOverride is false', () => {
       const teams = createDefaultTeams(2);
-      const matchOff = createMatchState(
-        { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: false },
+      const matchOn = createMatchState(
+        { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: true },
         DEFAULT_SETTINGS
       );
 
-      const celebResOff = beginTurnSlot(matchOff, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'celebrities',
-        forcedDifficulty: 'hard',
+      // Medium (4-pt / 8-pt proverb) should NOT be restricted to Hard pools
+      const proverbMed = beginTurnSlot(matchOn, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'proverbs',
+        forcedDifficulty: 'medium',
       });
-      expect(celebResOff.state.currentSlot?.word).toBeDefined();
+      expect(proverbMed.state.currentSlot?.word.difficulty).toBe('medium');
+      expect(SPECIAL_TEAM1_HARD_POOLS.proverbs).not.toContain(
+        proverbMed.state.currentSlot?.word.text
+      );
 
-      // For Team 2, even if enableSpecialOverride is true, standard selection applies
+      // Team 2 should NOT use Team 1's curated pool (test deterministic rng outside curated texts)
       const matchTeam2 = {
-        ...createMatchState(
-          { teams, totalRounds: 5, startOrderMode: 'first', enableSpecialOverride: true },
-          DEFAULT_SETTINGS
-        ),
-        currentTurnIndexInRound: 1, // Team 2
+        ...matchOn,
+        currentTurnIndexInRound: 1,
       };
       const team2Res = beginTurnSlot(matchTeam2, INITIAL_WORDS, DEFAULT_SETTINGS, {
-        forcedCategoryId: 'sports',
+        forcedCategoryId: 'books',
         forcedDifficulty: 'hard',
+        rng: () => 0.01,
       });
       expect(team2Res.state.currentSlot?.word).toBeDefined();
+      // The very first books.hard item in INITIAL_WORDS is not in the curated 5-word pool
+      expect(SPECIAL_TEAM1_HARD_POOLS.books).not.toContain(team2Res.state.currentSlot?.word.text);
+
+      // Default OFF mode should behave normally
+      expect(DEFAULT_SETTINGS.enableSpecialOverride).toBe(false);
+      const matchOff = createMatchState(
+        { teams, totalRounds: 5, startOrderMode: 'first' },
+        DEFAULT_SETTINGS
+      );
+      expect(matchOff.enableSpecialOverride).toBe(false);
     });
   });
 });
