@@ -994,6 +994,10 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
       );
       expect(bottonBooks.length).toBe(2);
       expect(SPECIAL_TEAM1_HARD_POOLS.books.some((t) => t.includes('جان گاتمن'))).toBe(true);
+      expect(SPECIAL_TEAM1_HARD_POOLS.music).toContain('بهت قول میدم محسن یگانه');
+      expect(SPECIAL_TEAM1_HARD_POOLS.music).toContain('هوای گریه همایون شجریان');
+      expect(SPECIAL_TEAM1_HARD_POOLS.cities_countries).toContain('ایالت فلوریدا');
+      expect(SPECIAL_TEAM1_HARD_POOLS.cities_countries).toContain('ایالت میشیگان');
     });
 
     it('restricts Team 1 Hard picks (including swap) strictly to the 5-word curated pool across all categories when enableSpecialOverride is true', () => {
