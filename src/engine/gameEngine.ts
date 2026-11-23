@@ -157,7 +157,7 @@ export function createMatchState(
     selectedCategoryIds: allCategoryIds,
     enabledDifficulties: allDifficulties,
     goldenEnabled: config.goldenEnabled ?? settings.goldenEnabled,
-    enableSpecialOverride: config.enableSpecialOverride ?? settings.enableSpecialOverride,
+    secretDeckMode: config.secretDeckMode ?? settings.secretDeckMode ?? 'off',
     goldenOpportunitiesPerTeam: settings.goldenOpportunitiesPerTeam,
     currentRound: 1,
     currentTurnIndexInRound: 0,
@@ -280,114 +280,157 @@ export function toggleRisk20ForCurrentTurn(match: ActiveMatchState): ActiveMatch
   };
 }
 
-export const SPECIAL_TEAM1_HARD_POOLS: Record<string, string[]> = {
-  general: ['چک بی‌محل', 'طرح ترافیک', 'کارت‌به‌کارت', 'پارکینگ مزاحم', 'کروکی تصادف'],
-  kids: ['دایناسور', 'جوجه‌تیغی', 'حلزون', 'تک‌شاخ', 'بچه فیل'],
-  football: ['یوهان کرایف', 'فرانتس بکن‌باوئر', 'فرناندو تورس', 'گابریل باتیستوتا', 'علی پروین'],
-  sports: ['اشکل‌گربه', 'کیمیا علیزاده', 'کوبی برایانت', 'لوئیس همیلتون', 'حبیب نورماگومدوف'],
+export const SECRET_DECK_HARD_POOLS: Record<string, string[]> = {
+  general: [
+    'مزایده آنلاین',
+    'تمدید گواهینامه',
+    'قولنامه ملکی',
+    'پاسپورت و ویزا',
+    'انبارگردانی آخر سال',
+  ],
+  kids: [
+    'ساختن آدم‌برفی با کلاه',
+    'بازی قایم‌موشک در خانه',
+    'گرفتن پروانه با تور',
+    'دویدن دنبال بادبادک',
+    'مسواک زدن قبل از خواب',
+  ],
+  football: [
+    'یوهان کرایف',
+    'اریک کانتونا',
+    'هریستو استویچکوف',
+    'جانفرانکو زولا',
+    'دیگو فورلان',
+  ],
+  sports: [
+    'الکساندر کارلین',
+    'کایل دیک',
+    'اشکل‌گربه',
+    'اسکی آلپاین',
+    'ورزش چوگان سنتی',
+  ],
   movies_series: [
-    'کمال‌الملک فیلم سینمایی',
-    'هفت دیوید فینچر',
-    'پرتقال کوکی',
-    'مظنونین همیشگی',
-    'روانی آلفرد هیچکاک',
+    'از گور برخاسته',
+    'روزی روزگاری در هالیوود',
+    'حرامزاده‌های لعنتی',
+    'لئون حرفه‌ای',
+    'رستگاری در شاوشنگ',
   ],
   cartoons: [
-    'همسایه من توتورو',
-    'قلعه متحرک هاول',
-    'حمله به تایتان',
-    'عروس مردگان',
-    'چگونه اژدهای خود را تربیت کنیم',
+    'تام و جری کلاسیک',
+    'پینوکیو پسرک چوبی',
+    'ماجراهای تن‌تن',
+    'سندباد ملوان افسانه‌ای',
+    'هایدی دختر کوهستان',
   ],
-  celebrities: ['پردیس احمدیه', 'بابک حمیدیان', 'طناز طباطبایی', 'صابر ابر', 'فرهاد اصلانی'],
+  celebrities: [
+    'پردیس احمدیه',
+    'طناز طباطبایی',
+    'الناز حبیبی',
+    'میترا حجار',
+    'رویا نونهالی',
+  ],
   famous_figures: [
-    'میرزا تقی‌خان فراهانی',
-    'آلبر کامو',
-    'فریدریش نیچه',
-    'آلن تورینگ',
-    'سالوادور دالی',
+    'کارل فریدریش گاوس',
+    'جان فون نویمان ریاضی‌دان',
+    'خیام نیشابوری',
+    'جرج اورول',
+    'آنتون چخوف',
   ],
   books: [
     'تسلی‌بخشی‌های فلسفه آلن دوباتن',
-    'جستارهایی در باب عشق آلن دوباتن',
+    'ارغوان هوشنگ ابتهاج',
     'هفت اصل برای موفقیت در ازدواج جان گاتمن',
-    'دایی جان ناپلئون ایرج پزشکزاد',
-    'انسان خردمند یووال نوح هراری',
+    'قصر فرانتس کافکا',
+    'شیاطین داستایفسکی',
   ],
   music: [
-    'بهت قول میدم محسن یگانه',
     'هوای گریه همایون شجریان',
-    'تحریر زدن در آواز',
-    'بداهه‌نوازی',
-    'آکورد گرفتن',
+    'سنتور نوازی',
+    'تار و سه‌تار',
+    'پیانو کلاسیک',
+    'ویولن سل',
   ],
-  places: ['نقش رستم', 'مسجد شیخ لطف‌الله', 'کاخ عالی‌قاپو', 'ماچوپیچو پرو', 'پاساژ علاءالدین تهران'],
+  places: [
+    'سی‌وسه‌پل اصفهان',
+    'طاق بستان کرمانشاه',
+    'برج آزادی تهران',
+    'کاخ گلستان تهران',
+    'برج ایفل پاریس',
+  ],
   cities_countries: [
-    'ریو دو ژانیرو',
-    'بوئنوس آیرس',
-    'ایالت فلوریدا',
-    'ایالت میشیگان',
-    'مرودشت',
+    'ورشو لهستان',
+    'هلسینکی فنلاند',
+    'میامی فلوریدا',
+    'ایالت تگزاس',
+    'جزیره قشم',
   ],
   proverbs: [
-    'آن را که حساب پاک است از محاسبه چه باک است',
-    'آفتابه خرج لحیم است',
-    'خانه از پای‌بست ویران است',
-    'از این ستون به آن ستون فرج است',
-    'به مرگ می‌گیرد تا به تب راضی شود',
+    'پایت را به اندازه گلیمت دراز کن',
+    'جوجه را آخر پاییز می‌شمارند',
+    'چاقو دسته خودش را نمی‌برد',
+    'دود از کنده بلند می‌شود',
+    'هم خدا را می‌خواهد هم خرما را',
   ],
   abstract: [
-    'دورویی و نفاق',
-    'همزادپنداری',
-    'اهمال‌کاری',
-    'تملق و چاپلوسی',
-    'آرامش قبل از طوفان',
+    'وجدان کاری',
+    'عزت نفس',
+    'بلندپروازی',
+    'انتظار کشیدن',
+    'صبر و استقامت',
   ],
   animals: [
-    'پلاتی‌پوس نوک‌اردکی',
-    'گورکن عسل‌خوار',
-    'اژدهای کومودو',
-    'ماهی دلقک',
-    'آرمادیلو زره‌دار',
+    'پلنگ برفی',
+    'پنگوئن امپراتور',
+    'کوسه سرچکشی',
+    'خرس کوآلا',
+    'اسب آبی آفریقایی',
   ],
   food: [
-    'مرصع‌پلو مجلسی',
-    'کلم‌پلو شیرازی',
-    'خورشت قلیه‌ماهی',
-    'ته‌دیگ سیب‌زمینی کنجدی',
-    'باقلوا قزوینی',
+    'خورشت فسنجان مجلسی',
+    'آش رشته نذری',
+    'میرزا قاسمی گیلانی',
+    'دیزی سنگی سنتی',
+    'کباب بناب',
   ],
   jobs: [
-    'متخصص هوش مصنوعی و علم داده',
-    'کنترل‌کننده ترافیک هوایی برج مراقبت',
-    'طراح صحنه و لباس',
-    'تعمیرکار ساعت مچی ظریف',
-    'مترجم زبان اشاره ناشنوایان',
+    'مهندس معمار',
+    'کارآگاه خصوصی',
+    'غواص اعماق دریا',
+    'عکاس حیات‌وحش',
+    'داور مسابقه فوتبال',
   ],
   objects: [
-    'آفتابه‌لگن مسی قدیمی',
-    'ماشین تایپ قدیمی کلیدی',
-    'تلفن رومیزی چرخشی شماره‌گیر',
-    'فانوس نفتی شیشه‌ای',
-    'واکمن نوارکاست‌خور',
+    'گرامافون صفحه‌دار',
+    'چرتکه چوبی محاسبه',
+    'رادیو موج کوتاه',
+    'میکروسکوپ آزمایشگاهی',
+    'ساعت جیبی زنجیردار',
   ],
   tech_science: [
-    'پایگاه داده رابطه‌ای اس‌کیو‌ال',
     'بینایی ماشین',
-    'نورون و سیناپس مصنوعی',
-    'خوشه‌بندی در یادگیری ماشین',
-    'معماری مدل ترنسفورمر',
+    'برنامه‌نویسی شیءگرا',
+    'شبکه عصبی پیچشی سی‌ان‌ان',
+    'شبکه عصبی بازگشتی',
+    'پیچیدگی زمانی بیگ او',
   ],
 };
 
-function pickSpecialTeam1HardWord(
+function isSecretDeckActiveForTeam(match: ActiveMatchState, teamId: string): boolean {
+  const mode = match.secretDeckMode ?? 'off';
+  if (mode === 'team1') return teamId === match.teams[0]?.id;
+  if (mode === 'team2') return teamId === match.teams[1]?.id;
+  return false;
+}
+
+function pickSecretDeckHardWord(
   categoryId: string,
   wordBank: WordItem[],
   usedSet: Set<string>,
   rng: () => number,
   excludeWordId?: string
 ): WordItem | null {
-  const poolTexts = SPECIAL_TEAM1_HARD_POOLS[categoryId];
+  const poolTexts = SECRET_DECK_HARD_POOLS[categoryId];
   if (!poolTexts || poolTexts.length === 0) return null;
 
   const poolItems = wordBank.filter(
@@ -546,12 +589,8 @@ export function beginTurnSlot(
   }
 
   let selectedWord = sel.word;
-  if (
-    match.enableSpecialOverride &&
-    team.id === match.teams[0]?.id &&
-    selectedWord.difficulty === 'hard'
-  ) {
-    const curatedWord = pickSpecialTeam1HardWord(
+  if (isSecretDeckActiveForTeam(match, team.id) && selectedWord.difficulty === 'hard') {
+    const curatedWord = pickSecretDeckHardWord(
       selectedWord.categoryId,
       wordBank,
       usedSet,
@@ -811,10 +850,9 @@ export function swapWordInTurn(
   const team = getActiveTeam(match);
   const usedSet = new Set(match.usedWordIds);
   const specialSwapWord =
-    match.enableSpecialOverride &&
-    team.id === match.teams[0]?.id &&
+    isSecretDeckActiveForTeam(match, team.id) &&
     match.currentSlot.word.difficulty === 'hard'
-      ? pickSpecialTeam1HardWord(
+      ? pickSecretDeckHardWord(
           match.currentSlot.word.categoryId,
           wordBank,
           usedSet,
@@ -928,10 +966,9 @@ export function reportInvalidWordAndReplace(
 
   const team = getActiveTeam(match);
   const specialReportWord =
-    match.enableSpecialOverride &&
-    team.id === match.teams[0]?.id &&
+    isSecretDeckActiveForTeam(match, team.id) &&
     reportedWord.difficulty === 'hard'
-      ? pickSpecialTeam1HardWord(
+      ? pickSecretDeckHardWord(
           reportedWord.categoryId,
           updatedBank,
           usedSet,

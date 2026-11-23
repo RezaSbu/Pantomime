@@ -53,6 +53,8 @@ export interface SpeedBonusRule {
   bonus: number;
 }
 
+export type SecretDeckMode = 'off' | 'team1' | 'team2';
+
 export interface AppSettings {
   timerMode: TimerMode;
   regularTimeSec: Record<Difficulty, number>;
@@ -82,7 +84,7 @@ export interface AppSettings {
   persianDigits: boolean;
   allowRepeatWords: boolean;
   allowNegativeScore: boolean;
-  enableSpecialOverride: boolean;
+  secretDeckMode: SecretDeckMode;
 }
 
 export interface GameSetupConfig {
@@ -94,7 +96,7 @@ export interface GameSetupConfig {
   selectedCategoryIds?: string[];
   enabledDifficulties?: Difficulty[];
   goldenEnabled?: boolean;
-  enableSpecialOverride?: boolean;
+  secretDeckMode?: SecretDeckMode;
 }
 
 export interface TimerState {
@@ -180,7 +182,7 @@ export interface ActiveMatchState {
   enabledDifficulties: Difficulty[];
   goldenEnabled: boolean;
   goldenOpportunitiesPerTeam: number;
-  enableSpecialOverride: boolean;
+  secretDeckMode: SecretDeckMode;
   currentRound: number;
   currentTurnIndexInRound: number;
   roundTeamOrder: string[];

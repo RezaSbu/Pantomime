@@ -131,7 +131,7 @@ const initialSettings = {
   // Always ensure all categories remain active in player-facing mobile mode
   disabledCategoryIds: [],
   goldenEnabled: true,
-  enableSpecialOverride: false,
+  secretDeckMode: 'off' as const,
 };
 applyThemeToDocument(initialSettings.theme);
 
@@ -253,9 +253,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       activeMatch: match,
       setupDraftTeams: config.teams,
       route: 'game',
-      settings: settings.enableSpecialOverride
-        ? { ...settings, enableSpecialOverride: false }
-        : settings,
+      settings:
+        settings.secretDeckMode !== 'off'
+          ? { ...settings, secretDeckMode: 'off' }
+          : settings,
     });
     persistActiveMatch(match).catch(() => {});
   },

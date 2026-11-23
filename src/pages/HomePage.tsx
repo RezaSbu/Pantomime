@@ -9,7 +9,7 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AdabaziLogo } from '../components/AdabaziLogo';
 import { DynamicIcon } from '../components/DynamicIcon';
 import { PWAInstallControl } from '../components/PWAInstallControl';
@@ -49,10 +49,27 @@ export const HomePage: React.FC = () => {
   const [totalRounds, setTotalRounds] = useState<number>(5);
   const [isCustomRounds, setIsCustomRounds] = useState<boolean>(false);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
-  const secretTapRef = useRef<{ count: number; lastAt: number }>({ count: 0, lastAt: 0 });
+  const secretTapRef = useRef<{ count: number; lastAt: number; timer: number | null }>({
+    count: 0,
+    lastAt: 0,
+    timer: null,
+  });
+
+  useEffect(() => {
+    return () => {
+      if (secretTapRef.current.timer !== null) {
+        window.clearTimeout(secretTapRef.current.timer);
+      }
+    };
+  }, []);
 
   const handleSecretLogoTap = () => {
     const now = Date.now();
+    if (secretTapRef.current.timer !== null) {
+      window.clearTimeout(secretTapRef.current.timer);
+      secretTapRef.current.timer = null;
+    }
+
     if (now - secretTapRef.current.lastAt > 2000) {
       secretTapRef.current.count = 1;
     } else {
@@ -60,14 +77,25 @@ export const HomePage: React.FC = () => {
     }
     secretTapRef.current.lastAt = now;
 
-    if (secretTapRef.current.count >= 5) {
+    secretTapRef.current.timer = window.setTimeout(() => {
+      const taps = secretTapRef.current.count;
       secretTapRef.current.count = 0;
-      const nextVal = !settings.enableSpecialOverride;
-      updateSettings({ enableSpecialOverride: nextVal });
-      if (settings.vibrationEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(nextVal ? [25, 40, 25] : 20);
+      secretTapRef.current.timer = null;
+
+      if (taps === 5) {
+        const nextMode = settings.secretDeckMode === 'team1' ? 'off' : 'team1';
+        updateSettings({ secretDeckMode: nextMode });
+        if (settings.vibrationEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(nextMode === 'off' ? 20 : [25, 40, 25]);
+        }
+      } else if (taps === 7) {
+        const nextMode = settings.secretDeckMode === 'team2' ? 'off' : 'team2';
+        updateSettings({ secretDeckMode: nextMode });
+        if (settings.vibrationEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(nextMode === 'off' ? 20 : [25, 40, 25]);
+        }
       }
-    }
+    }, 420);
   };
 
   const activeTeamInSaved =
@@ -120,7 +148,7 @@ export const HomePage: React.FC = () => {
       totalRounds: Math.max(1, Math.min(30, totalRounds)),
       wordsPerTurn: 1,
       startOrderMode: 'first',
-      enableSpecialOverride: settings.enableSpecialOverride,
+      secretDeckMode: settings.secretDeckMode,
     });
   };
 
@@ -208,10 +236,16 @@ export const HomePage: React.FC = () => {
             className="relative shrink-0 select-none"
           >
             <AdabaziLogo className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 drop-shadow-sm" />
-            {settings.enableSpecialOverride && (
+            {settings.secretDeckMode === 'team1' && (
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute bottom-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500/85"
+              />
+            )}
+            {settings.secretDeckMode === 'team2' && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-rose-500/85"
               />
             )}
           </div>

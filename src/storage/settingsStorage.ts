@@ -85,7 +85,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   persianDigits: true,
   allowRepeatWords: false,
   allowNegativeScore: true,
-  enableSpecialOverride: false,
+  secretDeckMode: 'off',
 };
 
 function normalizeTierRecord(
@@ -162,7 +162,7 @@ export function loadSettings(): AppSettings {
       foulPenalty:
         typeof parsed.foulPenalty === 'number' ? parsed.foulPenalty : DEFAULT_SETTINGS.foulPenalty,
       difficultyWeights: { ...DEFAULT_SETTINGS.difficultyWeights, ...parsed.difficultyWeights },
-      enableSpecialOverride: false,
+      secretDeckMode: 'off',
     };
 
     if (isLegacy) {
@@ -183,7 +183,7 @@ export function saveSettings(settings: AppSettings): void {
   try {
     window.localStorage.setItem(
       SETTINGS_STORAGE_KEY,
-      JSON.stringify({ ...settings, enableSpecialOverride: false })
+      JSON.stringify({ ...settings, secretDeckMode: 'off' })
     );
   } catch {
     // Ignore quota errors
