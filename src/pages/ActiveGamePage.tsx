@@ -88,6 +88,7 @@ export const ActiveGamePage: React.FC = () => {
   const replayWithTeams = useGameStore((s) => s.replayWithTeams);
   const abandonActiveMatch = useGameStore((s) => s.abandonActiveMatch);
   const updateSettings = useGameStore((s) => s.updateSettings);
+  const setActiveMatchSecretDeckMode = useGameStore((s) => s.setActiveMatchSecretDeckMode);
 
   const [nowTick, setNowTick] = useState(() => Date.now());
   const [pickerCategory, setPickerCategory] = useState<CategoryItem | null>(null);
@@ -98,6 +99,19 @@ export const ActiveGamePage: React.FC = () => {
 
   const lastTickBucketRef = useRef<string | null>(null);
   const lastUiRenderMsRef = useRef<number>(0);
+  const secretTapRef = useRef<{ count: number; lastAt: number; timer: number | null }>({
+    count: 0,
+    lastAt: 0,
+    timer: null,
+  });
+
+  useEffect(() => {
+    return () => {
+      if (secretTapRef.current.timer !== null) {
+        window.clearTimeout(secretTapRef.current.timer);
+      }
+    };
+  }, []);
 
   // Close category picker sheet whenever phase or turn changes
   useEffect(() => {
@@ -295,6 +309,41 @@ export const ActiveGamePage: React.FC = () => {
       feedbackEngine.unlock();
       feedbackEngine.onSelectTopic(true, settings.vibrationEnabled);
     }
+  };
+
+  const handleSecretTeamIconTap = () => {
+    const now = Date.now();
+    if (secretTapRef.current.timer !== null) {
+      window.clearTimeout(secretTapRef.current.timer);
+      secretTapRef.current.timer = null;
+    }
+
+    if (now - secretTapRef.current.lastAt > 2000) {
+      secretTapRef.current.count = 1;
+    } else {
+      secretTapRef.current.count += 1;
+    }
+    secretTapRef.current.lastAt = now;
+
+    secretTapRef.current.timer = window.setTimeout(() => {
+      const taps = secretTapRef.current.count;
+      secretTapRef.current.count = 0;
+      secretTapRef.current.timer = null;
+
+      if (taps === 5) {
+        const nextMode = activeMatch.secretDeckMode === 'team1' ? 'off' : 'team1';
+        setActiveMatchSecretDeckMode(nextMode);
+        if (settings.vibrationEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(nextMode === 'off' ? 20 : [25, 40, 25]);
+        }
+      } else if (taps === 7) {
+        const nextMode = activeMatch.secretDeckMode === 'team2' ? 'off' : 'team2';
+        setActiveMatchSecretDeckMode(nextMode);
+        if (settings.vibrationEnabled && typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(nextMode === 'off' ? 20 : [25, 40, 25]);
+        }
+      }
+    }, 550);
   };
 
   const handleSelectCategoryDifficulty = (
@@ -535,10 +584,23 @@ export const ActiveGamePage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3.5">
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                    onClick={handleSecretTeamIconTap}
+                    className="relative w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm select-none"
                     style={{ backgroundColor: activeTeam.color }}
                   >
                     <DynamicIcon name={activeTeam.icon} className="w-7 h-7" />
+                    {activeMatch.secretDeckMode === 'team1' && (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full bg-emerald-400 ring-1 ring-white/90"
+                      />
+                    )}
+                    {activeMatch.secretDeckMode === 'team2' && (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full bg-rose-500 ring-1 ring-white/90"
+                      />
+                    )}
                   </div>
 
                   <div className="space-y-1">

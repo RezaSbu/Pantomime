@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { INITIAL_CATEGORIES } from '../../data/categories';
 import { INITIAL_WORDS, validateWordBank } from '../../data/initialWordBank';
+import { TAB_HARD_POOLS } from '../../data/tab';
 import { DEFAULT_SETTINGS } from '../../storage/settingsStorage';
+import { useGameStore } from '../../store/useGameStore';
 import { WordItem } from '../../types/game';
 import { exportWordsToCsv, parseWordsFromCsv } from '../../utils/importExport';
 import {
@@ -16,6 +18,7 @@ import {
   isRisk20Eligible,
   markWordSolved,
   pauseTurnPlayTimer,
+  pickSecretDeckHardWord,
   proceedFromTurnResult,
   recordWrongGuessInTurn,
   reportInvalidWordAndReplace,
@@ -29,6 +32,7 @@ import {
   startTurnPlayTimer,
   swapWordInTurn,
   toggleRisk20ForCurrentTurn,
+  updateMatchSecretDeckMode,
 } from '../gameEngine';
 import { createDefaultTeams, getRoundTeamOrder } from '../roundManager';
 import {
@@ -745,7 +749,7 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(parsed[0].difficulty).toBe(sample[0].difficulty);
   });
 
-  it('validates the entire 6,305-word Persian Word Bank (19 regular categories + 425 Golden phrases) with zero duplicates', () => {
+  it('validates the entire 7,771-word Persian Word Bank (19 regular categories + 425 Golden phrases) with zero duplicates', () => {
     const pardis = INITIAL_WORDS.find((w) => w.text === 'پردیس احمدیه');
     expect(pardis).toBeDefined();
     expect(pardis?.categoryId).toBe('celebrities');
@@ -753,8 +757,8 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
     expect(pardis?.basePoints).toBe(6);
 
     const report = validateWordBank(INITIAL_WORDS, INITIAL_CATEGORIES);
-    expect(report.totalWords).toBe(6305);
-    expect(report.regularWordsCount).toBe(5880);
+    expect(report.totalWords).toBe(7771);
+    expect(report.regularWordsCount).toBe(7346);
     expect(report.goldenWordsCount).toBe(425);
     expect(report.duplicateIds.length).toBe(0);
     expect(report.duplicateTexts.length).toBe(0);
@@ -767,23 +771,28 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
       } else if (stat.categoryId === 'movies_series') {
         expect(stat.easy).toBe(54);
         expect(stat.medium).toBe(162);
-        expect(stat.hard).toBe(349);
-        expect(stat.total).toBe(565);
+        expect(stat.hard).toBe(419);
+        expect(stat.total).toBe(635);
       } else if (stat.categoryId === 'sports' || stat.categoryId === 'cities_countries') {
         expect(stat.easy).toBe(27);
         expect(stat.medium).toBe(81);
-        expect(stat.hard).toBe(189);
-        expect(stat.total).toBe(297);
+        expect(stat.hard).toBe(259);
+        expect(stat.total).toBe(367);
       } else if (stat.categoryId === 'famous_figures') {
         expect(stat.easy).toBe(27);
         expect(stat.medium).toBe(81);
-        expect(stat.hard).toBe(188);
-        expect(stat.total).toBe(296);
+        expect(stat.hard).toBe(258);
+        expect(stat.total).toBe(366);
+      } else if (stat.categoryId === 'proverbs') {
+        expect(stat.easy).toBe(27);
+        expect(stat.medium).toBe(217);
+        expect(stat.hard).toBe(257);
+        expect(stat.total).toBe(501);
       } else {
         expect(stat.easy).toBe(27);
         expect(stat.medium).toBe(81);
-        expect(stat.hard).toBe(187);
-        expect(stat.total).toBe(295);
+        expect(stat.hard).toBe(257);
+        expect(stat.total).toBe(365);
       }
     }
 
@@ -974,43 +983,79 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
   });
 
   describe('SecretDeckMode Feature (5-tap Team 1 / 7-tap Team 2)', () => {
-    it('defines 5 valid Hard words in INITIAL_WORDS for all 19 regular categories with zero overlap from removed pools', () => {
+    it('supports arbitrary non-empty pool sizes in TAB_HARD_POOLS across all 19 regular categories without duplicate entries', () => {
       expect(Object.keys(SECRET_DECK_HARD_POOLS).length).toBe(INITIAL_CATEGORIES.length);
 
       for (const cat of INITIAL_CATEGORIES) {
         const pool = SECRET_DECK_HARD_POOLS[cat.id];
         expect(pool, `Missing pool for ${cat.id}`).toBeDefined();
-        expect(pool.length, `Pool size mismatch for ${cat.id}`).toBe(5);
-        expect(new Set(pool).size, `Duplicate entries in pool for ${cat.id}`).toBe(5);
-
-        for (const text of pool) {
-          const found = INITIAL_WORDS.find(
-            (w) =>
-              w.categoryId === cat.id &&
-              w.difficulty === 'hard' &&
-              w.status === 'valid' &&
-              w.text === text
-          );
-          expect(found, `Word "${text}" not found in ${cat.id}.hard`).toBeDefined();
-        }
+        expect(pool.length, `Pool must have at least 1 entry for ${cat.id}`).toBeGreaterThanOrEqual(1);
+        expect(new Set(pool).size, `Duplicate entries in pool for ${cat.id}`).toBe(pool.length);
       }
 
-      // Verify user-specified entries in SECRET_DECK_HARD_POOLS
-      expect(SECRET_DECK_HARD_POOLS.football).toContain('یوهان کرایف');
-      expect(SECRET_DECK_HARD_POOLS.football).toContain('اریک کانتونا');
-      expect(SECRET_DECK_HARD_POOLS.football).toContain('هریستو استویچکوف');
-      expect(SECRET_DECK_HARD_POOLS.sports).toContain('الکساندر کارلین');
-      expect(SECRET_DECK_HARD_POOLS.sports).toContain('کایل دیک');
-      expect(SECRET_DECK_HARD_POOLS.sports).toContain('اشکل‌گربه');
-      expect(SECRET_DECK_HARD_POOLS.celebrities).toContain('پردیس احمدیه');
-      expect(SECRET_DECK_HARD_POOLS.celebrities).toContain('الناز حبیبی');
-      expect(SECRET_DECK_HARD_POOLS.celebrities).toContain('میترا حجار');
-      expect(SECRET_DECK_HARD_POOLS.celebrities).toContain('رویا نونهالی');
-      expect(SECRET_DECK_HARD_POOLS.famous_figures).toContain('کارل فریدریش گاوس');
-      expect(SECRET_DECK_HARD_POOLS.music).toContain('هوای گریه همایون شجریان');
-      expect(SECRET_DECK_HARD_POOLS.cities_countries).toContain('میامی فلوریدا');
-      expect(SECRET_DECK_HARD_POOLS.cities_countries).toContain('ایالت تگزاس');
-      expect(SECRET_DECK_HARD_POOLS.tech_science).toContain('پیچیدگی زمانی بیگ او');
+      expect(SECRET_DECK_HARD_POOLS.football.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('handles 2-item pools (swap picks the other item), 10-item pools, and custom non-bank words in tab.ts', () => {
+      const teams = createDefaultTeams(2);
+      const match = createMatchState(
+        { teams, totalRounds: 5, startOrderMode: 'first', secretDeckMode: 'team1' },
+        DEFAULT_SETTINGS
+      );
+
+      // Football currently has 2 entries in tab.ts -> draw picks one, swap strictly picks the other
+      const fbTurn = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'football',
+        forcedDifficulty: 'hard',
+        rng: () => 0,
+      });
+      const firstFb = fbTurn.state.currentSlot?.word;
+      expect(firstFb).toBeDefined();
+      expect(TAB_HARD_POOLS.football).toContain(firstFb?.text);
+
+      const swappedFb = swapWordInTurn(
+        fbTurn.state,
+        INITIAL_WORDS,
+        DEFAULT_SETTINGS,
+        100_000,
+        () => 0
+      );
+      expect(swappedFb.swapped).toBe(true);
+      const secondFb = swappedFb.state.currentSlot?.word;
+      expect(secondFb?.text).not.toBe(firstFb?.text);
+      expect(TAB_HARD_POOLS.football).toContain(secondFb?.text);
+
+      // 10 custom words not in wordDB.ts -> still picked accurately and swapped inside that 10-item pool
+      const tenCustomPool = {
+        football: Array.from({ length: 10 }, (_, i) => `بازیکن سفارشی تپ ${i + 1}`),
+      };
+      const picked10 = pickSecretDeckHardWord(
+        'football',
+        INITIAL_WORDS,
+        DEFAULT_SETTINGS,
+        new Set(),
+        () => 0.75,
+        undefined,
+        undefined,
+        tenCustomPool
+      );
+      expect(picked10).not.toBeNull();
+      expect(tenCustomPool.football).toContain(picked10?.text);
+      expect(picked10?.basePoints).toBe(6);
+
+      const swapped10 = pickSecretDeckHardWord(
+        'football',
+        INITIAL_WORDS,
+        DEFAULT_SETTINGS,
+        new Set([picked10!.id]),
+        () => 0.75,
+        picked10!.id,
+        picked10!.text,
+        tenCustomPool
+      );
+      expect(swapped10).not.toBeNull();
+      expect(swapped10?.text).not.toBe(picked10?.text);
+      expect(tenCustomPool.football).toContain(swapped10?.text);
     });
 
     it('restricts Team 1 Hard picks (including swap) when secretDeckMode is team1', () => {
@@ -1115,6 +1160,74 @@ describe('Game Engine — Swaps, Invalid Word Reports, Multi-Word Turns & Sudden
         DEFAULT_SETTINGS
       );
       expect(matchOff.secretDeckMode).toBe('off');
+    });
+
+    it('exports TAB_HARD_POOLS from tab.ts and activates mid-game ONLY for remaining unplayed categories', () => {
+      expect(SECRET_DECK_HARD_POOLS).toBe(TAB_HARD_POOLS);
+
+      const teams = createDefaultTeams(3);
+      // Match begins in normal mode ('off')
+      let match = createMatchState(
+        { teams, totalRounds: 5, startOrderMode: 'first', secretDeckMode: 'off' },
+        DEFAULT_SETTINGS
+      );
+
+      // Team 1 plays football:hard normally and locks it
+      const footballTurn = beginTurnSlot(match, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'football',
+        forcedDifficulty: 'hard',
+        rng: () => 0.01,
+      });
+      expect(TAB_HARD_POOLS.football).not.toContain(footballTurn.state.currentSlot?.word.text);
+      const solved = markWordSolved(
+        startTurnPlayTimer(revealWordToActor(footballTurn.state), 1000),
+        INITIAL_WORDS,
+        DEFAULT_SETTINGS,
+        5000
+      );
+      match = proceedFromTurnResult(solved, DEFAULT_SETTINGS, 6000);
+      expect(isComboUsedByTeam(match, teams[0].id, 'football', 'hard')).toBe(true);
+
+      // Mid-game (while on Team 2's turn): activate 5-tap ('team1')
+      match = updateMatchSecretDeckMode(match, 'team1', 7000);
+      expect(match.secretDeckMode).toBe('team1');
+      // Already-played football:hard remains locked for Team 1
+      expect(isComboUsedByTeam(match, teams[0].id, 'football', 'hard')).toBe(true);
+
+      // Advance back to Team 1's turn and draw a remaining Hard category (books)
+      const matchBackToTeam1 = { ...match, currentTurnIndexInRound: 0 };
+      const retryFootball = beginTurnSlot(matchBackToTeam1, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'football',
+        forcedDifficulty: 'hard',
+      });
+      expect(retryFootball.error).toBeDefined();
+
+      const booksTurn = beginTurnSlot(matchBackToTeam1, INITIAL_WORDS, DEFAULT_SETTINGS, {
+        forcedCategoryId: 'books',
+        forcedDifficulty: 'hard',
+        rng: () => 0.4,
+      });
+      expect(TAB_HARD_POOLS.books).toContain(booksTurn.state.currentSlot?.word.text);
+    });
+  });
+
+  describe('Default Team Count on App Startup & Setup Reset', () => {
+    it('always starts with 2 default teams and resets setupDraftTeams to 2 after starting or abandoning a 6-team match', async () => {
+      expect(useGameStore.getState().setupDraftTeams.length).toBe(2);
+
+      const sixTeams = createDefaultTeams(6);
+      useGameStore.getState().startNewMatch({
+        teams: sixTeams,
+        totalRounds: 5,
+        wordsPerTurn: 1,
+        startOrderMode: 'first',
+      });
+      expect(useGameStore.getState().activeMatch?.teams.length).toBe(6);
+      expect(useGameStore.getState().setupDraftTeams.length).toBe(2);
+
+      await useGameStore.getState().abandonActiveMatch();
+      expect(useGameStore.getState().activeMatch).toBeNull();
+      expect(useGameStore.getState().setupDraftTeams.length).toBe(2);
     });
   });
 });

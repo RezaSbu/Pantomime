@@ -95,7 +95,7 @@ export const HomePage: React.FC = () => {
           navigator.vibrate(nextMode === 'off' ? 20 : [25, 40, 25]);
         }
       }
-    }, 420);
+    }, 550);
   };
 
   const activeTeamInSaved =

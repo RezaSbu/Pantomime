@@ -1,4 +1,5 @@
 import { INITIAL_CATEGORIES } from '../data/categories';
+import { TAB_HARD_POOLS } from '../data/tab';
 import {
   ActiveMatchState,
   AppSettings,
@@ -6,8 +7,10 @@ import {
   Difficulty,
   GameSetupConfig,
   ScoreEvent,
+  SecretDeckMode,
   WordItem,
 } from '../types/game';
+import { normalizePersianText } from '../utils/format';
 import {
   getRoundTeamOrder,
   getSuddenDeathTeamOrder,
@@ -280,141 +283,20 @@ export function toggleRisk20ForCurrentTurn(match: ActiveMatchState): ActiveMatch
   };
 }
 
-export const SECRET_DECK_HARD_POOLS: Record<string, string[]> = {
-  general: [
-    'مزایده آنلاین',
-    'تمدید گواهینامه',
-    'قولنامه ملکی',
-    'پاسپورت و ویزا',
-    'انبارگردانی آخر سال',
-  ],
-  kids: [
-    'ساختن آدم‌برفی با کلاه',
-    'بازی قایم‌موشک در خانه',
-    'گرفتن پروانه با تور',
-    'دویدن دنبال بادبادک',
-    'مسواک زدن قبل از خواب',
-  ],
-  football: [
-    'یوهان کرایف',
-    'اریک کانتونا',
-    'هریستو استویچکوف',
-    'جانفرانکو زولا',
-    'دیگو فورلان',
-  ],
-  sports: [
-    'الکساندر کارلین',
-    'کایل دیک',
-    'اشکل‌گربه',
-    'اسکی آلپاین',
-    'ورزش چوگان سنتی',
-  ],
-  movies_series: [
-    'از گور برخاسته',
-    'روزی روزگاری در هالیوود',
-    'حرامزاده‌های لعنتی',
-    'لئون حرفه‌ای',
-    'رستگاری در شاوشنگ',
-  ],
-  cartoons: [
-    'تام و جری کلاسیک',
-    'پینوکیو پسرک چوبی',
-    'ماجراهای تن‌تن',
-    'سندباد ملوان افسانه‌ای',
-    'هایدی دختر کوهستان',
-  ],
-  celebrities: [
-    'پردیس احمدیه',
-    'طناز طباطبایی',
-    'الناز حبیبی',
-    'میترا حجار',
-    'رویا نونهالی',
-  ],
-  famous_figures: [
-    'کارل فریدریش گاوس',
-    'جان فون نویمان ریاضی‌دان',
-    'خیام نیشابوری',
-    'جرج اورول',
-    'آنتون چخوف',
-  ],
-  books: [
-    'تسلی‌بخشی‌های فلسفه آلن دوباتن',
-    'ارغوان هوشنگ ابتهاج',
-    'هفت اصل برای موفقیت در ازدواج جان گاتمن',
-    'قصر فرانتس کافکا',
-    'شیاطین داستایفسکی',
-  ],
-  music: [
-    'هوای گریه همایون شجریان',
-    'سنتور نوازی',
-    'تار و سه‌تار',
-    'پیانو کلاسیک',
-    'ویولن سل',
-  ],
-  places: [
-    'سی‌وسه‌پل اصفهان',
-    'طاق بستان کرمانشاه',
-    'برج آزادی تهران',
-    'کاخ گلستان تهران',
-    'برج ایفل پاریس',
-  ],
-  cities_countries: [
-    'ورشو لهستان',
-    'هلسینکی فنلاند',
-    'میامی فلوریدا',
-    'ایالت تگزاس',
-    'جزیره قشم',
-  ],
-  proverbs: [
-    'پایت را به اندازه گلیمت دراز کن',
-    'جوجه را آخر پاییز می‌شمارند',
-    'چاقو دسته خودش را نمی‌برد',
-    'دود از کنده بلند می‌شود',
-    'هم خدا را می‌خواهد هم خرما را',
-  ],
-  abstract: [
-    'وجدان کاری',
-    'عزت نفس',
-    'بلندپروازی',
-    'انتظار کشیدن',
-    'صبر و استقامت',
-  ],
-  animals: [
-    'پلنگ برفی',
-    'پنگوئن امپراتور',
-    'کوسه سرچکشی',
-    'خرس کوآلا',
-    'اسب آبی آفریقایی',
-  ],
-  food: [
-    'خورشت فسنجان مجلسی',
-    'آش رشته نذری',
-    'میرزا قاسمی گیلانی',
-    'دیزی سنگی سنتی',
-    'کباب بناب',
-  ],
-  jobs: [
-    'مهندس معمار',
-    'کارآگاه خصوصی',
-    'غواص اعماق دریا',
-    'عکاس حیات‌وحش',
-    'داور مسابقه فوتبال',
-  ],
-  objects: [
-    'گرامافون صفحه‌دار',
-    'چرتکه چوبی محاسبه',
-    'رادیو موج کوتاه',
-    'میکروسکوپ آزمایشگاهی',
-    'ساعت جیبی زنجیردار',
-  ],
-  tech_science: [
-    'بینایی ماشین',
-    'برنامه‌نویسی شیءگرا',
-    'شبکه عصبی پیچشی سی‌ان‌ان',
-    'شبکه عصبی بازگشتی',
-    'پیچیدگی زمانی بیگ او',
-  ],
-};
+export const SECRET_DECK_HARD_POOLS = TAB_HARD_POOLS;
+
+export function updateMatchSecretDeckMode(
+  match: ActiveMatchState,
+  mode: SecretDeckMode,
+  now = Date.now()
+): ActiveMatchState {
+  if (match.secretDeckMode === mode) return match;
+  return {
+    ...match,
+    secretDeckMode: mode,
+    updatedAt: now,
+  };
+}
 
 function isSecretDeckActiveForTeam(match: ActiveMatchState, teamId: string): boolean {
   const mode = match.secretDeckMode ?? 'off';
@@ -423,28 +305,90 @@ function isSecretDeckActiveForTeam(match: ActiveMatchState, teamId: string): boo
   return false;
 }
 
-function pickSecretDeckHardWord(
+function buildTabWordItem(
+  categoryId: string,
+  text: string,
+  index: number,
+  settings: AppSettings
+): WordItem {
+  const isProverb = categoryId === 'proverbs' || categoryId === 'proverb';
+  const kind: WordItem['kind'] = isProverb ? 'proverb' : 'regular';
+  const basePoints = isProverb
+    ? settings.proverbBasePoints.hard
+    : settings.regularBasePoints.hard;
+  const defaultTimeSec = isProverb
+    ? settings.proverbTimeSec.hard
+    : settings.regularTimeSec.hard;
+  const bonusTiers = isProverb
+    ? settings.proverbSpeedBonus.hard
+    : settings.regularSpeedBonus.hard;
+  const topTier = bonusTiers[0] ?? {
+    thresholdSec: isProverb ? 35 : 25,
+    bonus: isProverb ? 5 : 4,
+  };
+
+  return {
+    id: `tab_${categoryId}_hard_${index + 1}`,
+    text: text.trim(),
+    categoryId,
+    difficulty: 'hard',
+    kind,
+    basePoints,
+    defaultTimeSec,
+    speedBonusThresholdSec: topTier.thresholdSec,
+    speedBonusPoints: topTier.bonus,
+    status: 'valid',
+    origin: 'neutral',
+    tags: [],
+    alternatives: [],
+  };
+}
+
+export function pickSecretDeckHardWord(
   categoryId: string,
   wordBank: WordItem[],
+  settings: AppSettings,
   usedSet: Set<string>,
   rng: () => number,
-  excludeWordId?: string
+  excludeWordId?: string,
+  excludeWordText?: string,
+  poolsOverride?: Record<string, string[]>
 ): WordItem | null {
-  const poolTexts = SECRET_DECK_HARD_POOLS[categoryId];
+  const poolTexts = (poolsOverride ?? SECRET_DECK_HARD_POOLS)[categoryId];
   if (!poolTexts || poolTexts.length === 0) return null;
 
-  const poolItems = wordBank.filter(
-    (w) =>
-      w.categoryId === categoryId &&
-      w.difficulty === 'hard' &&
-      w.status === 'valid' &&
-      w.id !== excludeWordId &&
-      poolTexts.includes(w.text)
-  );
-  if (poolItems.length === 0) return null;
+  const excludedNorm = excludeWordText ? normalizePersianText(excludeWordText) : null;
+  const seenNorm = new Set<string>();
+  const resolvedPool: WordItem[] = [];
 
-  const unused = poolItems.filter((w) => !usedSet.has(w.id));
-  const candidates = unused.length > 0 ? unused : poolItems;
+  poolTexts.forEach((rawText, idx) => {
+    const trimmed = rawText.trim();
+    if (!trimmed) return;
+    const norm = normalizePersianText(trimmed);
+    if (!norm || seenNorm.has(norm)) return;
+    seenNorm.add(norm);
+
+    const matched = wordBank.find(
+      (w) =>
+        w.categoryId === categoryId &&
+        w.difficulty === 'hard' &&
+        w.status === 'valid' &&
+        normalizePersianText(w.text) === norm
+    );
+    resolvedPool.push(matched ?? buildTabWordItem(categoryId, trimmed, idx, settings));
+  });
+
+  if (resolvedPool.length === 0) return null;
+
+  const eligible = resolvedPool.filter(
+    (w) =>
+      w.id !== excludeWordId &&
+      (excludedNorm === null || normalizePersianText(w.text) !== excludedNorm)
+  );
+  if (eligible.length === 0) return null;
+
+  const unused = eligible.filter((w) => !usedSet.has(w.id));
+  const candidates = unused.length > 0 ? unused : eligible;
   return candidates[Math.floor(rng() * candidates.length) % candidates.length] ?? null;
 }
 
@@ -593,6 +537,7 @@ export function beginTurnSlot(
     const curatedWord = pickSecretDeckHardWord(
       selectedWord.categoryId,
       wordBank,
+      settings,
       usedSet,
       rng
     );
@@ -849,17 +794,31 @@ export function swapWordInTurn(
 
   const team = getActiveTeam(match);
   const usedSet = new Set(match.usedWordIds);
-  const specialSwapWord =
+  const useTabPool =
     isSecretDeckActiveForTeam(match, team.id) &&
-    match.currentSlot.word.difficulty === 'hard'
-      ? pickSecretDeckHardWord(
-          match.currentSlot.word.categoryId,
-          wordBank,
-          usedSet,
-          rng,
-          match.currentSlot.word.id
-        )
-      : null;
+    match.currentSlot.word.difficulty === 'hard' &&
+    (SECRET_DECK_HARD_POOLS[match.currentSlot.word.categoryId]?.some((t) => t.trim().length > 0) ??
+      false);
+
+  const specialSwapWord = useTabPool
+    ? pickSecretDeckHardWord(
+        match.currentSlot.word.categoryId,
+        wordBank,
+        settings,
+        usedSet,
+        rng,
+        match.currentSlot.word.id,
+        match.currentSlot.word.text
+      )
+    : null;
+
+  if (useTabPool && !specialSwapWord) {
+    return {
+      state: match,
+      swapped: false,
+      error: 'کلمه دیگری در فهرست ویژه این موضوع برای تعویض وجود ندارد.',
+    };
+  }
 
   const replacement = specialSwapWord
     ? { word: specialSwapWord, fallbackNotice: undefined }
@@ -971,9 +930,11 @@ export function reportInvalidWordAndReplace(
       ? pickSecretDeckHardWord(
           reportedWord.categoryId,
           updatedBank,
+          settings,
           usedSet,
           rng,
-          reportedWord.id
+          reportedWord.id,
+          reportedWord.text
         )
       : null;
 

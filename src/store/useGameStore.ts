@@ -22,6 +22,7 @@ import {
   swapWordInTurn,
   toggleRisk20ForCurrentTurn,
   toggleWordVisibilityDuringPlay,
+  updateMatchSecretDeckMode,
 } from '../engine/gameEngine';
 import { createDefaultTeams } from '../engine/roundManager';
 import { feedbackEngine } from '../engine/soundEngine';
@@ -36,9 +37,7 @@ import {
 import {
   applyThemeToDocument,
   DEFAULT_SETTINGS,
-  loadLastTeamsPreset,
   loadSettings,
-  saveLastTeamsPreset,
   saveSettings,
 } from '../storage/settingsStorage';
 import {
@@ -49,6 +48,7 @@ import {
   CompletedMatch,
   Difficulty,
   GameSetupConfig,
+  SecretDeckMode,
   Team,
   WordItem,
 } from '../types/game';
@@ -72,6 +72,7 @@ interface GameStoreState {
 
   // Quick Preferences (Sound, Tick, Theme, Tilt)
   updateSettings: (patch: Partial<AppSettings>) => void;
+  setActiveMatchSecretDeckMode: (mode: SecretDeckMode) => void;
 
   // Game lifecycle
   startNewMatch: (config: GameSetupConfig) => void;
@@ -111,17 +112,6 @@ interface GameStoreState {
 }
 
 function getInitialDraftTeams(): Team[] {
-  const raw = loadLastTeamsPreset();
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw) as Team[];
-      if (Array.isArray(parsed) && parsed.length >= 2 && parsed.length <= 8) {
-        return parsed;
-      }
-    } catch {
-      // Fallback
-    }
-  }
   return createDefaultTeams(2);
 }
 
@@ -232,9 +222,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ settings: next });
   },
 
+  setActiveMatchSecretDeckMode: (mode) => {
+    const { activeMatch } = get();
+    if (!activeMatch) return;
+    const next = updateMatchSecretDeckMode(activeMatch, mode);
+    if (next !== activeMatch) {
+      set({ activeMatch: next });
+      persistActiveMatch(next).catch(() => {});
+    }
+  },
+
   startNewMatch: (config) => {
     const { settings } = get();
-    saveLastTeamsPreset(JSON.stringify(config.teams));
     const match = createMatchState(
       {
         ...config,
@@ -251,7 +250,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
     set({
       activeMatch: match,
-      setupDraftTeams: config.teams,
+      setupDraftTeams: createDefaultTeams(2),
       route: 'game',
       settings:
         settings.secretDeckMode !== 'off'
@@ -270,12 +269,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   abandonActiveMatch: async () => {
     feedbackEngine.onTap(get().settings.soundEnabled);
-    set({ activeMatch: null, route: 'home' });
-    await persistActiveMatch(null);
+    set({
+      activeMatch: null,
+      setupDraftTeams: createDefaultTeams(2),
+      route: 'home',
+    });
+    await persistActiveMatch(null).catch(() => {});
   },
 
   replayWithTeams: (teams) => {
-    saveLastTeamsPreset(JSON.stringify(teams));
     feedbackEngine.onTap(get().settings.soundEnabled);
     set({
       setupDraftTeams: teams.map((t) => ({ ...t })),
